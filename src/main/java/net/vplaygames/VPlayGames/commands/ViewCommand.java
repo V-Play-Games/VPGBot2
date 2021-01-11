@@ -15,59 +15,86 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
+import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import static net.vplaygames.VPlayGames.db.botresources.data;
 import static net.vplaygames.VPlayGames.db.database.trnrs;
 import static net.vplaygames.VPlayGames.db.database.types;
-import static net.vplaygames.VPlayGames.db.userdatabase.*;
-import static net.vplaygames.VPlayGames.util.Array.returnID;
 
 public class ViewCommand extends ListenerAdapter
 {
     public void onGuildMessageReceived(GuildMessageReceivedEvent e)
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
-        int user_pv = returnID(user_ids,e.getAuthor().getIdLong());
-        if(msg[0].equals("v!view"))
+        long aid=e.getAuthor().getIdLong();
+        if(!e.getAuthor().isBot()&&msg[0].equals("v!view"))
         {
             String to_send;
-            if(msg.length>=3)
+            if(data.containsKey(aid))
             {
-                String m1 = msg[1], m2 = msg[2];
-                if(isRegistered(e.getAuthor().getIdLong()))
+                Damage d = data.get(aid);
+                if(msg.length==3)
                 {
-                    if(m1.equals("trainer"))
-                    {
-                        if(app_stts[returnID(user_ids,e.getAuthor().getIdLong())]<1)
-                            to_send="Choose a Trainer first!";
-                        else if (m2.equals("name"))
-                            to_send=trnrs[tids[user_pv]];
-                        else if (m2.equals("id"))
-                            to_send=(Integer.toString(tids[user_pv]));
-                        else
-                            to_send="Cannot find entry \""+m2+"\" in list \""+m1+"\"";
-                    } else if (m1.equals("move"))
-                    {
-                        if(app_stts[returnID(user_ids,e.getAuthor().getIdLong())]<3)
-                            to_send="Choose a Move first!";
-                        else if (m2.equals("name"))
-                            to_send=mvnams[user_pv];
-                        else if (m2.equals("info"))
-                            to_send="Move Info:-\nBase Power: "+mInfos[user_pv][0]+
-                                    "\nCategory: "+((mInfos[user_pv][2]==1)?"Special":"Physical") +
-                                    "\nReach: "+((mInfos[user_pv][1]==1)?"All opponents":"An opponent")+
-                                    "\nType: "+types[mInfos[user_pv][3]-1];
-                        else if (m2.equals("level"))
-                            to_send = (smls[user_pv] != 0)?Integer.toString(smls[user_pv]):"Set the Sync Move Level first!";
-                        else
-                            to_send="Cannot find entry \""+m2+"\" in list \""+m1+"\"";
-                    } else
-                        to_send="Cannot find list \""+m1+"\"";
+                    String m1 = msg[1], m2 = msg[2];
+                    switch (m1) {
+                        case "trainer":
+                        case "t":
+                            if (d.getApp_stts() < 1)
+                                to_send = "Choose a Trainer first!";
+                            else if (m2.equals("name"))
+                                to_send = "The chosen trainer is named " + trnrs[d.getTid()];
+                            else if (m2.equals("id"))
+                                to_send = "The chosen trainer's id is " + d.getTid();
+                            else
+                                to_send = "Cannot find entry \"" + m2 + "\" in list \"" + m1 + "\"";
+                            break;
+                        case "move":
+                        case "m":
+                            if (d.getApp_stts() < 3)
+                                to_send = "Choose a Move first!";
+                            else {
+                                switch (m2) {
+                                    case "name":
+                                    case "n":
+                                        to_send = "The current chosen move is named " + d.getMvnam();
+                                        break;
+                                    case "info":
+                                    case "i":
+                                        to_send = "Move Info:-\nBase Power: " + d.getMInfo()[0] +
+                                                "\nCategory: " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") +
+                                                "\nReach: " + ((d.getMInfo()[1] == 1) ? "All opponents" : "An opponent") +
+                                                "\nType: " + types[d.getMInfo()[3] - 1];
+                                        break;
+                                    case "level":
+                                    case "lvl":
+                                        to_send = (d.getSml() != 0) ? "Currently chosen move level: " + d.getSml() : "Set the Sync Move Level first!";
+                                        break;
+                                    case "modifier":
+                                    case "mod":
+                                        to_send=((d.getMod()[0]==1)?"Critical Hit\n":"")+((d.getMod()[1]==1)?"Super-Effective\n":"");
+                                        to_send+=(to_send.isEmpty())?"None":"";
+                                        to_send="Available Modifiers:\n"+to_send;
+                                        break;
+                                    default:
+                                        to_send = "Cannot find entry \"" + m2 + "\" in list \"" + m1 + "\"";
+                                        break;
+                                }
+                            }
+                            break;
+                        case "weather":
+                        case "w":
+                            to_send = ((d.getWthr()[0] == 1) ? "The weather was sunny" : ((d.getWthr()[1] == 1) ? "It was raining" : ((d.getWthr()[2] == 1) ? "There was a sandstorm" : ((d.getWthr()[3] == 1) ? "It was hailing" : "The weather was normal")))) + ".";
+                            break;
+                        default:
+                            to_send = "Cannot find list \"" + m1 + "\"";
+                            break;
+                    }
                 } else
-                    to_send="Cannot find a Pokemon Masters Damage Calculator created by "+e.getAuthor().getAsMention();
+                    to_send="Not enough inputs!";
             } else
-                to_send="Not enough inputs!";
+                to_send="Cannot find a Pokemon Masters Damage Calculator created by "+e.getAuthor().getAsMention();
             e.getChannel().sendMessage(to_send).queue();
         }
     }

@@ -15,13 +15,12 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
+import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.vplaygames.VPlayGames.util.Array;
 
+import static net.vplaygames.VPlayGames.db.botresources.data;
 import static net.vplaygames.VPlayGames.db.botresources.prefix;
-import static net.vplaygames.VPlayGames.db.userdatabase.*;
-import static net.vplaygames.VPlayGames.util.Array.sumAll;
 
 public class WeatherCommand extends ListenerAdapter
 {
@@ -29,50 +28,38 @@ public class WeatherCommand extends ListenerAdapter
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         String to_send;
-        int user_pv = Array.returnID(user_ids,e.getAuthor().getIdLong());
-        if(msg[0].equals(prefix+"weather")||msg[0].equals(prefix+"wthr"))
+        long aid=e.getAuthor().getIdLong();
+        if(!e.getAuthor().isBot()&&(msg[0].equals(prefix+"weather")||msg[0].equals(prefix+"wthr")))
         {
-            if(isRegistered(e.getAuthor().getIdLong()))
+            if(data.containsKey(aid))
             {
-                if(sumAll(wthrs[user_pv])==1)
-                {
-                    to_send="No, "+((wthrs[user_pv][0]==1)?"the weather was sunny":((wthrs[user_pv][1]==1)?"it was raining":((wthrs[user_pv][2]==1)?"there was a sandstorm":"it was hailing")))+"!";
-                } else {
-                    switch (msg[1])
-                    {
-                        case "sunny":
-                        case "sun":
-                            setWeather(0,user_pv);
-                            to_send="OK! So, the weather was sunny";
+                Damage d = data.get(aid);
+                switch (msg[1]) {
+                    case "sunny":
+                    case "sun":
+                        d.setWthr(0);
+                        to_send = "OK! So, the weather was sunny";
                         break;
-                        case "rainy":
-                        case "rain":
-                            setWeather(1,user_pv);
-                            to_send="OK! So, it was raining";
+                    case "rainy":
+                    case "rain":
+                        d.setWthr(1);
+                        to_send = "OK! So, it was raining";
                         break;
-                        case "sandstorm":
-                            setWeather(2,user_pv);
-                            to_send="OK! So, a sandstorm was raging";
+                    case "sandstorm":
+                        d.setWthr(2);
+                        to_send = "OK! So, a sandstorm was raging";
                         break;
-                        case "hail":
-                        case "hailstorm":
-                            setWeather(3,user_pv);
-                            to_send="OK! So, it was hailing";
+                    case "hail":
+                    case "hailstorm":
+                        d.setWthr(3);
+                        to_send = "OK! So, it was hailing";
                         break;
-                        default:
-                            to_send="That is a very weird weather!";
-                    }
+                    default:
+                        to_send = "That is a very weird weather!";
                 }
             } else
                 to_send="Create a PM Damage Calculator App first!";
             e.getChannel().sendMessage(to_send).queue();
         }
-    }
-    public static void setWeather(int wthr, int u)
-    {
-
-        for(int i:wthrs[u])
-            wthrs[u][i]=0;
-        wthrs[u][wthr]=1;
     }
 }

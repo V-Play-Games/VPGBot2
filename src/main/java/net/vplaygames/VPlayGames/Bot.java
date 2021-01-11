@@ -15,13 +15,14 @@
  */
 package net.vplaygames.VPlayGames;
 
+import net.vplaygames.VPlayGames.BotStaffCommands.LogCommand;
 import net.vplaygames.VPlayGames.commands.*;
+import net.vplaygames.VPlayGames.events.BotPingedEvent;
 import net.vplaygames.VPlayGames.events.HelloEvent;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 
-import static net.vplaygames.VPlayGames.db.botresources.TOKEN;
-import static net.vplaygames.VPlayGames.db.botresources.setBooted;
+import static net.vplaygames.VPlayGames.db.botresources.*;
 
 public class Bot
 {
@@ -29,10 +30,13 @@ public class Bot
     {
         JDA jda = JDABuilder.createDefault(TOKEN).build();
         setBooted();
+        initStaff();
 
         jda.awaitReady();
 
         jda.addEventListener(new HelloEvent());
+        jda.addEventListener(new BotPingedEvent());
+
         jda.addEventListener(new PMCommand());
         jda.addEventListener(new TrainerCommand());
         jda.addEventListener(new HelpCommands());
@@ -46,5 +50,7 @@ public class Bot
         jda.addEventListener(new CalculateDamageCommand());
         jda.addEventListener(new MiscCommands());
         jda.addEventListener(new WeatherCommand());
+
+        jda.addEventListener(new LogCommand());
     }
 }

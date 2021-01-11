@@ -15,34 +15,36 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
+import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import static net.vplaygames.VPlayGames.db.botresources.data;
 import static net.vplaygames.VPlayGames.db.botresources.prefix;
-import static net.vplaygames.VPlayGames.db.userdatabase.*;
 
 public class PMCommand extends ListenerAdapter
 {
     public void onGuildMessageReceived(GuildMessageReceivedEvent e)
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
+        long aid = e.getAuthor().getIdLong();
         String to_send;
-        if(!e.getAuthor().isBot()&&msg[0].equals(prefix + "pm"))
+        if(!e.getAuthor().isBot()&&msg[0].equals(prefix + "pm")&&msg.length>1)
         {
             if(msg[1].equals("start"))
             {
-                if (!isRegistered(e.getAuthor().getIdLong())) {
-                    to_send = "A new Damage Calculation Application has been created by " + e.getAuthor().getAsMention();
-                    register(e.getAuthor().getIdLong());
+                if (!data.containsKey(aid)) {
+                    data.put(aid,new Damage(e));
+                    to_send = "A new PM Damage Calculation Application has been created by " + e.getAuthor().getAsMention();
                 } else
                     to_send = "A PM Damage Calculator App is already open.";
             } else if (msg[1].equals("end"))
             {
-                if (isRegistered(e.getAuthor().getIdLong())) {
-                    to_send = e.getAuthor().getAsMention() + " has deleted their Damage Calculation Application.";
-                    unregister(e.getAuthor().getIdLong());
+                if (data.containsKey(aid)) {
+                    data.remove(aid);
+                    to_send = e.getAuthor().getAsMention() + " has deleted their PM Damage Calculation Application.";
                 } else
-                    to_send = e.getAuthor().getAsMention() + ", I can't find your Damage Calculation Application.";
+                    to_send = e.getAuthor().getAsMention() + ", I can't find your PM Damage Calculation Application.";
             } else
                 to_send="Invalid Input.";
             e.getChannel().sendMessage(to_send).queue();

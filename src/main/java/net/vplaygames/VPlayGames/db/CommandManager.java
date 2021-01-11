@@ -25,6 +25,7 @@ import static net.vplaygames.VPlayGames.commands.MiscCommands.MiscCommands;
 import static net.vplaygames.VPlayGames.commands.PMCommand.PMCommand;
 import static net.vplaygames.VPlayGames.commands.PingCommand.PingCommand;
 import static net.vplaygames.VPlayGames.commands.StatRegisterCommand.StatRegisterCommand;
+import static net.vplaygames.VPlayGames.commands.StatusCommand.StatusCommand;
 import static net.vplaygames.VPlayGames.commands.SyncMoveLevel.SyncMoveLevel;
 import static net.vplaygames.VPlayGames.commands.TrainerCommand.TrainerCommand;
 import static net.vplaygames.VPlayGames.commands.VerifyCommand.VerifyCommand;
@@ -36,34 +37,29 @@ public class CommandManager extends ListenerAdapter
 {
     public void onGuildMessageReceived(GuildMessageReceivedEvent e)
     {
-        String[] msg=e.getMessage().getContentRaw().split(" ");
         String msg_s = e.getMessage().getContentRaw();
-        if (!e.getAuthor().isBot())
+        if (!e.getAuthor().isBot()&&msg_s.startsWith(prefix))
         {
-            if(msg[0].equals(prefix+"buff"))
-                BuffCommand(e);
-            else if(msg_s.equals(prefix+"cd"))
-                CalculateDamageCommand(e);
-            else if((msg[0].equals(prefix+"choose")||msg[0].equals(prefix+"c"))&&msg.length==2)
-                ChooseCommand(e);
-            else if((msg[0].equals(prefix+"moveis")&&msg_s.length()>=prefix.length()+8)||(msg[0].equals(prefix+"mi")&&msg_s.length()>=prefix.length()+4))
-                MiscCommands(e);
-            else if(msg[0].equals(prefix + "pm")&&msg.length>1)
-                PMCommand(e);
-            else if(msg[0].equals(prefix+"stat"))
-                StatRegisterCommand(e);
-            else if(msg[0].equals(prefix+"sml"))
-                SyncMoveLevel(e);
-            else if(msg_s.startsWith(prefix+"trainer "))
-                TrainerCommand(e);
-            else if(msg_s.equals(prefix+"verify"))
-                VerifyCommand(e);
-            else if(!e.getAuthor().isBot()&&msg[0].equals(prefix+"view"))
-                ViewCommand(e);
-            else if(!e.getAuthor().isBot()&&(msg[0].equals(prefix+"weather")||msg[0].equals(prefix+"wthr")))
-                WeatherCommand(e);
-            else if(msg_s.equals(prefix+"ping"))
-                PingCommand(e.getChannel());
+            msg_s=msg_s.substring(prefix.length());
+            String[] msg = msg_s.split(" ");
+            switch (msg[0]) {
+                case "buff": BuffCommand(e); break;
+                case "cd": CalculateDamageCommand(e); break;
+                case "choose": if(!(msg_s.length()>=9)){return;} ChooseCommand(e); break;
+                case "c": if(!(msg_s.length()>=5)){return;} ChooseCommand(e); break;
+                case "moveis":
+                case "mi": MiscCommands(e); break;
+                case "pm": PMCommand(e); break;
+                case "stat": StatRegisterCommand(e); break;
+                case "sml": SyncMoveLevel(e); break;
+                case "trainer": TrainerCommand(e); break;
+                case "verify": VerifyCommand(e); break;
+                case "view": ViewCommand(e); break;
+                case "weather":
+                case "wthr": WeatherCommand(e); break;
+                case "status": StatusCommand(e); break;
+                case "ping": PingCommand(e.getChannel()); break;
+            }
         }
     }
 }

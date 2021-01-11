@@ -17,31 +17,24 @@ package net.vplaygames.VPlayGames.util;
 
 public class Array
 {
-    public static int returnID(String[] a, String b)
-    {
+    public static int returnID(String[] a, String b) {
         for (int i = 0; i<a.length; i++)
-        {
             if (b.equalsIgnoreCase(a[i]))
                 return i;
-        }
         return a.length-1;
     }
-    public static int returnID(long[] a, long b)
-    {
+
+    public static int returnID(long[] a, long b) {
         for (int i = 0; i<a.length; i++)
-        {
             if (b==a[i])
                 return i;
-        }
         return a.length-1;
     }
-    public static int returnID(int[] a, int b)
-    {
+
+    public static int returnID(int[] a, int b) {
         for (int i = 0; i<a.length; i++)
-        {
             if (b==a[i])
                 return i;
-        }
         return a.length-1;
     }
 }

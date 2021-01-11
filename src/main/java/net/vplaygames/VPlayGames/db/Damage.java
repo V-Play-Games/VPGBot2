@@ -17,7 +17,7 @@ package net.vplaygames.VPlayGames.db;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-import java.util.Arrays;
+import static java.util.Arrays.fill;
 
 public class Damage
 {
@@ -25,7 +25,7 @@ public class Damage
     long user_id,user_time;
     String mvnam;
     int[] uc,mSet,mInfo,mod,wthr;
-    int[][] stats={{0,0,0,0},{0,0,0,0}},buffs=new int[2][];
+    int[][] stats,buffs,status,sstatus;
 
     public Damage(GuildMessageReceivedEvent e) {
         user_id=e.getAuthor().getIdLong();
@@ -39,11 +39,12 @@ public class Damage
         mvnam="";
         app_stts=0;
         mInfo=new int[4];
-        mod=new int[3];
-        wthr=new int[4];
-        for (int i=0;i<2;i++) {buffs[i]=new int[7]; Arrays.fill(buffs[i],0);}
-        Arrays.fill(wthr,2);
-        Arrays.fill(mod,0);
+        mod=new int[]{0,0,0};
+        wthr=new int[]{0,0,0};
+        status=new int[][]{{0,0,0,0,0,0,0},{0,0,0,0,0,0,0}};
+        sstatus=new int[][]{{0,0,0},{0,0,0}};
+        stats=new int[][]{{0,0,0,0},{0,0,0,0}};
+        buffs=new int[][]{{0,0,0,0,0,0},{0,0,0,0,0,0}};
         mod[2]=1;
     }
 
@@ -102,9 +103,18 @@ public class Damage
         mod[i]=set;
     }
 
-    public void setWthr(int j) {
-        for (int i:wthr){wthr[i]=0;}
-        wthr[j]=1;
+    public void setWthr(int set) {
+        fill(wthr,0);
+        wthr[set]=1;
+    }
+
+    public void setStatus(int t, int set) {
+        fill(status[t],0);
+        status[t][set]=1;
+    }
+
+    public void setSStatus(int t, int set) {
+        sstatus[t][set]=(sstatus[t][set]==1)?0:1;
     }
 
     public void setStats(int target, int sttcd, int stat) {
@@ -177,6 +187,22 @@ public class Damage
 
     public int[] getWthr() {
         return wthr;
+    }
+
+    public String getWthrMsg() {
+        return (wthr[0]==1)?"the weather was sunny":(wthr[1]==1)?"it was raining":(wthr[2]==1)?"there was a sandstorm":(wthr[3]==1)?"it was hailing":"the weather was normal";
+    }
+
+    public String getTrgtMsg() {
+        return (mod[2]==1)?"the target was the only opponent affected by the move":"there "+((mod[2]==2)?"was 1 more opponent":"were 2 more opponents")+" other than the target affected by the move";
+    }
+
+    public int[][] getStatus() {
+        return status;
+    }
+
+    public int[][] getSStatus() {
+        return sstatus;
     }
 
     public int[][] getStats() {

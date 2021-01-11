@@ -25,6 +25,11 @@ public class WeatherCommand
     public static void WeatherCommand(GuildMessageReceivedEvent e)
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
+        if (msg.length!=2)
+        {
+            e.getChannel().sendMessage("Invalid Amount of inputs.").queue();
+            return;
+        }
         String to_send;
         long aid=e.getAuthor().getIdLong();
         if(data.containsKey(aid))

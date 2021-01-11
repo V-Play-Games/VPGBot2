@@ -15,13 +15,13 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
+import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.vplaygames.VPlayGames.util.Array;
 
 import static net.vplaygames.VPlayGames.commands.TrainerCommand.returnSP;
+import static net.vplaygames.VPlayGames.db.botresources.data;
 import static net.vplaygames.VPlayGames.db.botresources.prefix;
-import static net.vplaygames.VPlayGames.db.userdatabase.*;
 
 public class StatRegisterCommand extends ListenerAdapter
 {
@@ -29,17 +29,18 @@ public class StatRegisterCommand extends ListenerAdapter
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         String to_send;
-        int tstr,user_pv=Array.returnID(user_ids,e.getAuthor().getIdLong());
-        if (msg[0].equals(prefix+"stat"))
+        int tstr;
+        long aid=e.getAuthor().getIdLong();
+        if (!e.getAuthor().isBot()&&msg[0].equals(prefix+"stat"))
         {
-            if (isRegistered(e.getAuthor().getIdLong()))
+            if (data.containsKey(aid))
             {
-                if(app_stts[user_pv]>1)
+                if(data.get(aid).getApp_stts()>1)
                 {
                     if(msg.length>=4)
                     {
                         tstr=Integer.parseInt(msg[3]);
-                        to_send=returnStatMsg(msg[2],tstr,user_pv,msg[1]);
+                        to_send=returnStatMsg(msg[2],msg[1],tstr,aid);
                     } else
                         to_send="Not enough inputs!";
                 } else
@@ -49,36 +50,46 @@ public class StatRegisterCommand extends ListenerAdapter
             e.getChannel().sendMessage(to_send).queue();
         }
     }
-    public static String returnStatMsg(String m, int t, int u, String target)
+    public static String returnStatMsg(String m, String target, int s, long aid)
     {
-        int trgt;
+        Damage d = data.get(aid);
+        String stt_nm;
+        int t;
         switch (target) {
             case "user":
-                trgt=0;
+            case "u":
+                t=0;
                 break;
             case "target":
-                trgt=1;
+            case "t":
+                t=1;
                 break;
             default:
                 return "Cannot find \""+target+"\" entry in list \"stats\"";
         }
-        if(t<1)
+        if(s<1)
             return "Invalid Stat! Stat cannot be in negative!";
         switch (m) {
             case "att":
-                ((trgt==1)?stats_t:stats_u)[u][0]=t;
-                return "Set the "+((trgt==1)?"target":"``"+returnSP(uids[u])+"``")+"'s attack stat to "+t+"!";
+                d.setStats(t,0,s);
+                stt_nm="attack";
+                break;
             case "spa":
-                ((trgt==1)?stats_t:stats_u)[u][1]=t;
-                return "Set the "+((trgt==1)?"target":"``"+returnSP(uids[u])+"``")+"'s special attack stat to "+t+"!";
+                d.setStats(t,1,s);
+                stt_nm="special attack";
+                break;
             case "def":
-                ((trgt==1)?stats_t:stats_u)[u][2]=t;
-                return "Set the "+((trgt==1)?"target":"``"+returnSP(uids[u])+"``")+"'s defense stat to "+t+"!";
+                d.setStats(t,2,s);
+                stt_nm="defense";
+                break;
             case "spd":
-                ((trgt==1)?stats_t:stats_u)[u][3]=t;
-                return "Set the "+((trgt==1)?"target":"``"+returnSP(uids[u])+"``")+"'s special defense stat to "+t+"!";
+                d.setStats(t,3,s);
+                stt_nm="special defense";
+                break;
             default:
                 return "Cannot find sub-entry \""+m+"\" in entry \""+target+"\" in list \"stats\"";
         }
+        data.put(aid,d);
+        return "Set the "+((t==1)?"target":"**"+returnSP(d.getUid())+"**")+"'s "+stt_nm+" stat to "+s+"!";
     }
 }

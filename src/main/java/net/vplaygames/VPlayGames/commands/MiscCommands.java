@@ -15,48 +15,42 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
+import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.vplaygames.VPlayGames.util.Array;
 
+import static net.vplaygames.VPlayGames.db.botresources.data;
 import static net.vplaygames.VPlayGames.db.botresources.prefix;
-import static net.vplaygames.VPlayGames.db.userdatabase.*;
 
 public class MiscCommands extends ListenerAdapter
 {
     public void onGuildMessageReceived(GuildMessageReceivedEvent e)
     {
-        String msg = e.getMessage().getContentRaw();
-        String to_send;
-        int user_pv = Array.returnID(user_ids,e.getAuthor().getIdLong());
-        if(msg.startsWith(prefix+"moveis "))
+        String msg = e.getMessage().getContentRaw(),to_send,rslt;
+        long aid=e.getAuthor().getIdLong();
+        if(!e.getAuthor().isBot())
         {
-            if(isRegistered(e.getAuthor().getIdLong()))
+            if(msg.startsWith(prefix+"moveis ")&&msg.length()>=prefix.length()+8)
+                rslt = msg.substring(prefix.length()+7);
+            else if(msg.startsWith(prefix+"mi ")&&msg.length()>=prefix.length()+4)
+                rslt = msg.substring(prefix.length()+3);
+            else {
+                return;
+            }
+            if(data.containsKey(aid))
             {
-                try {
-                    if(msg.substring(prefix.length()+7).equalsIgnoreCase("Critical Hit")||msg.substring(prefix.length()+7).equalsIgnoreCase("CH"))
-                    {
-                        if(mods[user_pv][0]==1)
-                            to_send="I know that the move is critical hit.";
-                        else
-                        {
-                            to_send="Ok, I'll remember that the move was critical hit.";
-                            mods[user_pv][0]=1;
-                        }
-                    } else if(msg.substring(prefix.length()+7).equalsIgnoreCase("Super Effective")||msg.substring(prefix.length()+7).equalsIgnoreCase("SE"))
-                    {
-                        if(mods[user_pv][1]==1)
-                            to_send="I know that the move is super effective.";
-                        else
-                        {
-                            to_send="Ok, I'll remember that the move was super effective.";
-                            mods[user_pv][1]=1;
-                        }
-                    } else
-                        to_send="Invalid Modifier!";
-                } catch (Error err) {
-                    to_send="Not Enough inputs";
-                }
+                Damage d = data.get(aid);
+                if(rslt.equals("critical hit")||rslt.equals("ch"))
+                {
+                    d.setMod(0,(d.getMod()[0]==1)?0:1);
+                    to_send="Ok, I'll remember that the move was"+((d.getMod()[0]==0)?" not":"")+" critical hit.";
+                } else if(rslt.equals("super effective")||rslt.equals("se"))
+                {
+                    d.setMod(1,(d.getMod()[1]==1)?0:1);
+                    to_send="Ok, I'll remember that the move was"+((d.getMod()[1]==0)?" not":"")+" super effective.";
+                } else
+                    to_send="Invalid Modifier!";
+                data.put(aid,d);
             } else
                 to_send="Create a PM Damage Calculator App first!";
             e.getChannel().sendMessage(to_send).queue();

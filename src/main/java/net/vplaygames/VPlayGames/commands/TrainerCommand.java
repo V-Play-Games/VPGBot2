@@ -15,12 +15,13 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
+import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import static net.vplaygames.VPlayGames.db.botresources.data;
 import static net.vplaygames.VPlayGames.db.botresources.prefix;
 import static net.vplaygames.VPlayGames.db.database.*;
-import static net.vplaygames.VPlayGames.db.userdatabase.*;
 import static net.vplaygames.VPlayGames.util.Array.returnID;
 
 public class TrainerCommand extends ListenerAdapter
@@ -28,12 +29,14 @@ public class TrainerCommand extends ListenerAdapter
     public void onGuildMessageReceived(GuildMessageReceivedEvent e)
     {
         String msg = e.getMessage().getContentRaw(),trnr,to_send;
-        int tstr,user_pv=returnID(user_ids,e.getAuthor().getIdLong());
+        long aid = e.getAuthor().getIdLong();
+        int tstr;
         if (msg.startsWith(prefix+"trainer ")&&!e.getAuthor().isBot())
         {
-            if (isRegistered(e.getAuthor().getIdLong()))
+            if (data.containsKey(aid))
             {
-                if (app_stts[user_pv]==0)
+                Damage d = data.get(aid);
+                if (d.getApp_stts()==0)
                 {
                     trnr=msg.substring(prefix.length()+8);
                     tstr=returnID(trnrs, trnr);
@@ -43,31 +46,32 @@ public class TrainerCommand extends ListenerAdapter
                     else
                     {
                         to_send="Oh, you want to calculate damage for sync pairs associated with the trainer "+trnrs[tstr]+".\n\nI will show you the sync pairs including this trainer.";
-                        tids[user_pv] = (tstr==0)?1:tstr;
-                        app_stts[user_pv] = 1;
-                        to_send+=returnSPs(tids[user_pv]);
-                        ucs[user_pv] = tdabs[tids[user_pv]-1];
-                        int[] uc = ucs[user_pv];
+                        d.setTid((tstr==0)?1:tstr);
+                        d.app_stts();
+                        to_send+=returnSPs(d.getTid());
+                        d.setUc(tdabs[d.getTid()-1]);
+                        int[] uc = d.getUc();
                         e.getChannel().sendMessage(to_send).queue();
                         if (uc.length==1)
                         {
                             int i;
                             tstr=0;
-                            uids[user_pv]=uc[tstr];
-                            pids[user_pv]=uc[tstr]%1000000;
+                            d.setUid(uc[tstr]);
+                            d.setPid(uc[tstr]%1000000);
                             to_send="Oh, there is only one sync pair found."+
                                     "\nThis means you want to calculate damage for "+returnSP(uc[tstr])+
                                     "\nChoose the move for which you want to calculate the damage:";
-                            mSets[user_pv]=msets[pids[user_pv]%1000-1];
-                            for (i=1; i<=mSets[user_pv].length; i++)
-                                to_send+="\n"+i+". "+moves[(mSets[user_pv][i-1]-1)%1000];
-                            to_send+="\n"+i+". "+smoves[pids[user_pv]%1000-1]+" (Sync Move)\nGive your choice in an integer number in the range of 1-"+(mSets[user_pv].length+1)+"\nusing the command ``"+prefix+"choose <choice>``";
-                            app_stts[user_pv] = 2;
+                            d.setMSet(msets[d.getPid()%1000-1]);
+                            for (i=1; i<=d.getMSet().length; i++)
+                                to_send+="\n"+i+". "+moves[(d.getMSet()[i-1]-1)%1000];
+                            to_send+="\n"+i+". "+smoves[d.getPid()%1000-1]+" (Sync Move)\nGive your choice in an integer number in the range of 1-"+(d.getMSet().length+1)+"\nusing the command ``"+prefix+"choose <choice>``";
+                            d.app_stts();
                         } else
                             to_send= "\nGive your choice in an integer number in the range of 1-"+uc.length+"\nusing the command ``"+prefix+"choose <choice>``";
                     }
                 } else
                     to_send="You have already chosen the trainer for this Damage Calculation Application.";
+                data.put(aid,d);
             } else
                 to_send="To use this command, you have to open up a new Damage Calculation Application.";
             e.getChannel().sendMessage(to_send).queue();
@@ -82,8 +86,7 @@ public class TrainerCommand extends ListenerAdapter
     }
     public static String returnSP(int uid)
     {
-        String sp=" and "+pkmns[uid%1000-1];
-        String trnr=trnrs[uid/1000%1000];
+        String sp=" and "+pkmns[uid%1000-1],trnr=trnrs[uid/1000%1000];
         switch (uid/10000000)
         {
             case 1:

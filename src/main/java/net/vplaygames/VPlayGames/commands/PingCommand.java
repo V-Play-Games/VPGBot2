@@ -15,17 +15,13 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.entities.TextChannel;
 
-import static net.vplaygames.VPlayGames.db.botresources.prefix;
-
-public class PingCommand extends ListenerAdapter
+public class PingCommand
 {
-    public void onGuildMessageReceived(GuildMessageReceivedEvent e)
+    public static void PingCommand(TextChannel tchan)
     {
         long time = System.currentTimeMillis();
-        if (e.getMessage().getContentRaw().equals(prefix+"ping"))
-            e.getChannel().sendMessage("Pong!").queue(response-> response.editMessageFormat("Pong! "+(System.currentTimeMillis()-time)+" ms").queue());
+        tchan.sendMessage("Pong!").queue(response-> response.editMessage("Pong! "+(System.currentTimeMillis()-time)+" ms").queue());
     }
 }

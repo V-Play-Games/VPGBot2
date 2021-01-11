@@ -17,47 +17,42 @@ package net.vplaygames.VPlayGames.commands;
 
 import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import static net.vplaygames.VPlayGames.commands.TrainerCommand.returnSP;
 import static net.vplaygames.VPlayGames.db.botresources.data;
-import static net.vplaygames.VPlayGames.db.botresources.prefix;
 
-public class VerifyCommand extends ListenerAdapter
+public class VerifyCommand
 {
-    public void onGuildMessageReceived(GuildMessageReceivedEvent e)
+    public static void VerifyCommand(GuildMessageReceivedEvent e)
     {
         String msg = e.getMessage().getContentRaw(),to_send="";
         long aid=e.getAuthor().getIdLong();
-        if(!e.getAuthor().isBot()&&msg.equals(prefix+"verify"))
+        if(data.containsKey(aid))
         {
-            if(data.containsKey(aid))
+            if(!data.get(aid).isVerified())
             {
-                if(!data.get(aid).isVerified())
-                {
-                    Damage d = data.get(aid);
-                    if(d.getApp_stts()<1)
-                        to_send="Trainer is Missing!";
-                    if(d.getApp_stts()<2)
-                        to_send+="\nSync Pair is Missing!";
-                    if(d.getApp_stts()<3)
-                        to_send+="\nMove is Missing!";
-                    if(d.getSml()==0)
-                        to_send+="\nSync Move Level is Missing!";
-                    if(d.getStats()[0][d.getMInfo()[2]]==0)
-                        to_send+="\n``"+returnSP(d.getUid())+"``'s "+((d.getMInfo()[2]==1)?"Special":"Physical")+" Attack stat is Missing!";
-                    if(d.getStats()[1][d.getMInfo()[2]+2]==0)
-                        to_send+="\nThe target's "+((d.getMInfo()[2]==1)?"Special":"Physical")+" Defense stat is Missing!";
-                    if(to_send.equals("")) {
-                        to_send="Your PM Damage Calculator Application is now **verified**!";
-                        d.verify();
-                    }
-                    data.put(aid,d);
-                } else
-                    to_send="This app is already verified!";
+                Damage d = data.get(aid);
+                if(d.getApp_stts()<1)
+                    to_send="Trainer is Missing!";
+                if(d.getApp_stts()<2)
+                    to_send+="\nSync Pair is Missing!";
+                if(d.getApp_stts()<3)
+                    to_send+="\nMove is Missing!";
+                if(d.getSml()==0)
+                    to_send+="\nSync Move Level is Missing!";
+                if(d.getStats()[0][d.getMInfo()[2]]==0)
+                    to_send+="\n``"+returnSP(d.getUid())+"``'s "+((d.getMInfo()[2]==1)?"Special":"Physical")+" Attack stat is Missing!";
+                if(d.getStats()[1][d.getMInfo()[2]+2]==0)
+                    to_send+="\nThe target's "+((d.getMInfo()[2]==1)?"Special":"Physical")+" Defense stat is Missing!";
+                if(to_send.equals("")) {
+                    to_send="Your PM Damage Calculator Application is now **verified**!";
+                    d.verify();
+                }
+                data.put(aid,d);
             } else
-                to_send="PM Damage Calculation Application not found";
-            e.getChannel().sendMessage(to_send).queue();
-        }
+                to_send="This app is already verified!";
+        } else
+            to_send="PM Damage Calculation Application not found";
+        e.getChannel().sendMessage(to_send).queue();
     }
 }

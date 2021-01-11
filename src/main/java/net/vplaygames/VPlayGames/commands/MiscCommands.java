@@ -17,43 +17,33 @@ package net.vplaygames.VPlayGames.commands;
 
 import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import static net.vplaygames.VPlayGames.db.botresources.data;
 import static net.vplaygames.VPlayGames.db.botresources.prefix;
 
-public class MiscCommands extends ListenerAdapter
+public class MiscCommands
 {
-    public void onGuildMessageReceived(GuildMessageReceivedEvent e)
+    public static void MiscCommands(GuildMessageReceivedEvent e)
     {
-        String msg = e.getMessage().getContentRaw(),to_send,rslt;
+        String msg = e.getMessage().getContentRaw(),to_send,
+                rslt=msg.substring(prefix.length() + ((msg.startsWith(prefix+"mi"))?3:7));
         long aid=e.getAuthor().getIdLong();
-        if(!e.getAuthor().isBot())
+        if(data.containsKey(aid))
         {
-            if(msg.startsWith(prefix+"moveis ")&&msg.length()>=prefix.length()+8)
-                rslt = msg.substring(prefix.length()+7);
-            else if(msg.startsWith(prefix+"mi ")&&msg.length()>=prefix.length()+4)
-                rslt = msg.substring(prefix.length()+3);
-            else {
-                return;
-            }
-            if(data.containsKey(aid))
+            Damage d = data.get(aid);
+            if(rslt.equals("critical hit")||rslt.equals("ch"))
             {
-                Damage d = data.get(aid);
-                if(rslt.equals("critical hit")||rslt.equals("ch"))
-                {
-                    d.setMod(0,(d.getMod()[0]==1)?0:1);
-                    to_send="Ok, I'll remember that the move was"+((d.getMod()[0]==0)?" not":"")+" critical hit.";
-                } else if(rslt.equals("super effective")||rslt.equals("se"))
-                {
-                    d.setMod(1,(d.getMod()[1]==1)?0:1);
-                    to_send="Ok, I'll remember that the move was"+((d.getMod()[1]==0)?" not":"")+" super effective.";
-                } else
-                    to_send="Invalid Modifier!";
-                data.put(aid,d);
+                d.setMod(0,(d.getMod()[0]==1)?0:1);
+                to_send="Ok, I'll remember that the move was"+((d.getMod()[0]==0)?" not":"")+" critical hit.";
+            } else if(rslt.equals("super effective")||rslt.equals("se"))
+            {
+                d.setMod(1,(d.getMod()[1]==1)?0:1);
+                to_send="Ok, I'll remember that the move was"+((d.getMod()[1]==0)?" not":"")+" super effective.";
             } else
-                to_send="Create a PM Damage Calculator App first!";
-            e.getChannel().sendMessage(to_send).queue();
-        }
+                to_send="Invalid Modifier!";
+            data.put(aid,d);
+        } else
+            to_send="Create a PM Damage Calculator App first!";
+        e.getChannel().sendMessage(to_send).queue();
     }
 }

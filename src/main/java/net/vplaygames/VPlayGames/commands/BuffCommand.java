@@ -21,23 +21,20 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import static net.vplaygames.VPlayGames.commands.TrainerCommand.returnSP;
 import static net.vplaygames.VPlayGames.db.botresources.data;
 
-public class StatRegisterCommand
+public class BuffCommand
 {
-    public static void StatRegisterCommand(GuildMessageReceivedEvent e)
+    public static void BuffCommand(GuildMessageReceivedEvent e)
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         String to_send;
-        int tstr;
         long aid=e.getAuthor().getIdLong();
         if (data.containsKey(aid))
         {
             if(data.get(aid).getApp_stts()>1)
             {
                 if(msg.length>=4)
-                {
-                    tstr=Integer.parseInt(msg[3]);
-                    to_send=returnStatMsg(msg[2],msg[1],tstr,aid);
-                } else
+                    to_send=returnBuffMsg(msg[2],msg[1],Integer.parseInt(msg[3]),aid);
+                else
                     to_send="Not enough inputs!";
             } else
                 to_send="Please choose a Sync Pair first!";
@@ -45,10 +42,10 @@ public class StatRegisterCommand
             to_send="Start a Pokemon Masters Damage Calculation Application first!";
         e.getChannel().sendMessage(to_send).queue();
     }
-    public static String returnStatMsg(String m, String target, int s, long aid)
+    public static String returnBuffMsg(String m, String target, int b, long aid)
     {
         Damage d = data.get(aid);
-        String stt_nm;
+        String bff_nm;
         int t;
         switch (target) {
             case "user":
@@ -60,31 +57,31 @@ public class StatRegisterCommand
                 t=1;
                 break;
             default:
-                return "Cannot find \""+target+"\" entry in list \"stats\"";
+                return "Cannot find \""+target+"\" entry in list \"buffs\"";
         }
-        if(s<1)
-            return "Invalid Stat! Stat cannot be in negative!";
+        if(b<-6||b>6)
+            return "Invalid Stat! "+((b<0)?"":"+")+b+" stat buff not possible.";
         switch (m) {
             case "att":
-                d.setStats(t,0,s);
-                stt_nm="attack";
+                d.setBuffs(t,0,b);
+                bff_nm="attack";
                 break;
             case "spa":
-                d.setStats(t,1,s);
-                stt_nm="special attack";
+                d.setBuffs(t,1,b);
+                bff_nm="special attack";
                 break;
             case "def":
-                d.setStats(t,2,s);
-                stt_nm="defense";
+                d.setBuffs(t,2,b);
+                bff_nm="defense";
                 break;
             case "spd":
-                d.setStats(t,3,s);
-                stt_nm="special defense";
+                d.setBuffs(t,3,b);
+                bff_nm="special defense";
                 break;
             default:
                 return "Cannot find sub-entry \""+m+"\" in entry \""+target+"\" in list \"stats\"";
         }
         data.put(aid,d);
-        return "Set the "+((t==1)?"target":"**"+returnSP(d.getUid())+"**")+"'s "+stt_nm+" stat to "+s+"!";
+        return "Set the "+((t==1)?"target":"**"+returnSP(d.getUid())+"**")+"'s "+bff_nm+" stat buff to "+b+"!";
     }
 }

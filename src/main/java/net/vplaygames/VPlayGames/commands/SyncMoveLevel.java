@@ -17,44 +17,35 @@ package net.vplaygames.VPlayGames.commands;
 
 import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import static net.vplaygames.VPlayGames.commands.TrainerCommand.returnSP;
 import static net.vplaygames.VPlayGames.db.botresources.data;
-import static net.vplaygames.VPlayGames.db.botresources.prefix;
 
-public class SyncMoveLevel extends ListenerAdapter
+public class SyncMoveLevel
 {
-    public void onGuildMessageReceived(GuildMessageReceivedEvent e)
+    public static void SyncMoveLevel(GuildMessageReceivedEvent e)
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         String to_send;
         int tstr;
         long aid=e.getAuthor().getIdLong();
-        if(!e.getAuthor().isBot()&&msg[0].equals(prefix+"sml"))
+        if(data.containsKey(aid))
         {
-            if(data.containsKey(aid))
+            Damage d = data.get(aid);
+            if(d.getApp_stts()>1)
             {
-                Damage d = data.get(aid);
-                if(d.getApp_stts()>1)
-                {
-                    try {
-                        tstr = Integer.parseInt(msg[1]);
-                        if (tstr < 1 || tstr > 5)
-                            to_send = "Invalid Sync Move Level!";
-                        else {
-                            d.setSml(tstr);
-                            to_send="The Sync Move Level of \""+returnSP(d.getUid())+"\" is set to "+tstr+".";
-                        }
-                    } catch (Error err) {
-                        to_send = "Invalid Sync Move Level!";
-                    }
-                } else
-                    to_send="Choose a sync pair first!";
-                data.put(aid,d);
+                tstr = Integer.parseInt(msg[1]);
+                if (tstr < 1 || tstr > 5)
+                    to_send = "Invalid Sync Move Level!";
+                else {
+                    d.setSml(tstr);
+                    to_send="The Sync Move Level of \""+returnSP(d.getUid())+"\" is set to "+tstr+".";
+                }
             } else
-                to_send="Start a Pokemon Masters Damage Calculation Application first!";
-            e.getChannel().sendMessage(to_send).queue();
-        }
+                to_send="Choose a sync pair first!";
+            data.put(aid,d);
+        } else
+            to_send="Start a Pokemon Masters Damage Calculation Application first!";
+        e.getChannel().sendMessage(to_send).queue();
     }
 }

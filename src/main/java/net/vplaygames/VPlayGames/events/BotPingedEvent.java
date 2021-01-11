@@ -19,14 +19,27 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import static net.vplaygames.VPlayGames.db.botresources.BOT_OWNER;
+import static net.vplaygames.VPlayGames.db.botresources.prefix;
+
 public class BotPingedEvent extends ListenerAdapter
 {
     public void onGuildMessageReceived(GuildMessageReceivedEvent e)
     {
         String msg = e.getMessage().getContentRaw();
-        if (msg.contains(e.getJDA().getSelfUser().getAsMention()))
+        if (msg.contains("<@!"+e.getJDA().getSelfUser().getIdLong()+">"))
         {
             EmbedBuilder emb = new EmbedBuilder();
+            emb.addField("Prefix",prefix,true);
+            emb.addField("Developer",e.getJDA().getUserById(BOT_OWNER).getAsMention(),true);
+            emb.addField("Version","1.2.0",true);
+            emb.addField("Server Count",Integer.toString(e.getJDA().getGuilds().size()),false);
+            emb.setColor(0x1abc9c);
+            emb.setDescription("A Pokemon-related bot created by @V Play Games#9783");
+            emb.setAuthor("V Play Games Bot Info");
+            emb.setFooter("Use v!help to know more");
+            emb.setThumbnail(e.getJDA().getSelfUser().getAvatarUrl());
+            e.getChannel().sendMessage(emb.build()).queue();
         }
     }
 }

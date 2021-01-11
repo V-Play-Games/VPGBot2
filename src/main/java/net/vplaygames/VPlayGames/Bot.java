@@ -16,11 +16,12 @@
 package net.vplaygames.VPlayGames;
 
 import net.vplaygames.VPlayGames.BotStaffCommands.LogCommand;
-import net.vplaygames.VPlayGames.commands.*;
 import net.vplaygames.VPlayGames.events.BotPingedEvent;
 import net.vplaygames.VPlayGames.events.HelloEvent;
+import net.vplaygames.VPlayGames.db.CommandManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 
 import static net.vplaygames.VPlayGames.db.botresources.*;
 
@@ -28,29 +29,10 @@ public class Bot
 {
     public static void main(String[] args) throws Exception
     {
-        JDA jda = JDABuilder.createDefault(TOKEN).build();
+        JDA jda = JDABuilder.createDefault(TOKEN).setActivity(Activity.playing("v!pm start")).build();
         setBooted();
         initStaff();
-
         jda.awaitReady();
-
-        jda.addEventListener(new HelloEvent());
-        jda.addEventListener(new BotPingedEvent());
-
-        jda.addEventListener(new PMCommand());
-        jda.addEventListener(new TrainerCommand());
-        jda.addEventListener(new HelpCommands());
-        jda.addEventListener(new TerminatingCommands());
-        jda.addEventListener(new PingCommand());
-        jda.addEventListener(new ChooseCommand());
-        jda.addEventListener(new ViewCommand());
-        jda.addEventListener(new SyncMoveLevel());
-        jda.addEventListener(new StatRegisterCommand());
-        jda.addEventListener(new VerifyCommand());
-        jda.addEventListener(new CalculateDamageCommand());
-        jda.addEventListener(new MiscCommands());
-        jda.addEventListener(new WeatherCommand());
-
-        jda.addEventListener(new LogCommand());
+        jda.addEventListener(new HelloEvent(),new BotPingedEvent(),new CommandManager(),new LogCommand());
     }
 }

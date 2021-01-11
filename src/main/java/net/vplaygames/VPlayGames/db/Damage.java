@@ -17,14 +17,15 @@ package net.vplaygames.VPlayGames.db;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
+import java.util.Arrays;
+
 public class Damage
 {
-    long user_id;
-    long user_time;
     int tid,uid,pid,smd,sml,vrfy,app_stts;
+    long user_id,user_time;
     String mvnam;
     int[] uc,mSet,mInfo,mod,wthr;
-    int[][] stats={{0,0,0,0},{0,0,0,0}};
+    int[][] stats={{0,0,0,0},{0,0,0,0}},buffs=new int[2][];
 
     public Damage(GuildMessageReceivedEvent e) {
         user_id=e.getAuthor().getIdLong();
@@ -40,8 +41,9 @@ public class Damage
         mInfo=new int[4];
         mod=new int[3];
         wthr=new int[4];
-        for (int i:wthr){wthr[i]=2;}
-        for (int i:mod){mod[i]=0;}
+        for (int i=0;i<2;i++) {buffs[i]=new int[7]; Arrays.fill(buffs[i],0);}
+        Arrays.fill(wthr,2);
+        Arrays.fill(mod,0);
         mod[2]=1;
     }
 
@@ -107,6 +109,10 @@ public class Damage
 
     public void setStats(int target, int sttcd, int stat) {
         stats[target][sttcd]=stat;
+    }
+
+    public void setBuffs(int target, int bffcd, int buff) {
+        buffs[target][bffcd]=buff;
     }
 
     public long getUser_id() {
@@ -175,5 +181,9 @@ public class Damage
 
     public int[][] getStats() {
         return stats;
+    }
+
+    public int[][] getBuffs() {
+        return buffs;
     }
 }

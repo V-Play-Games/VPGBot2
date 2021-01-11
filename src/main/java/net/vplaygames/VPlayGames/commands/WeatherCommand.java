@@ -17,49 +17,44 @@ package net.vplaygames.VPlayGames.commands;
 
 import net.vplaygames.VPlayGames.db.Damage;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import static net.vplaygames.VPlayGames.db.botresources.data;
-import static net.vplaygames.VPlayGames.db.botresources.prefix;
 
-public class WeatherCommand extends ListenerAdapter
+public class WeatherCommand
 {
-    public void onGuildMessageReceived(GuildMessageReceivedEvent e)
+    public static void WeatherCommand(GuildMessageReceivedEvent e)
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         String to_send;
         long aid=e.getAuthor().getIdLong();
-        if(!e.getAuthor().isBot()&&(msg[0].equals(prefix+"weather")||msg[0].equals(prefix+"wthr")))
+        if(data.containsKey(aid))
         {
-            if(data.containsKey(aid))
-            {
-                Damage d = data.get(aid);
-                switch (msg[1]) {
-                    case "sunny":
-                    case "sun":
-                        d.setWthr(0);
-                        to_send = "OK! So, the weather was sunny";
-                        break;
-                    case "rainy":
-                    case "rain":
-                        d.setWthr(1);
-                        to_send = "OK! So, it was raining";
-                        break;
-                    case "sandstorm":
-                        d.setWthr(2);
-                        to_send = "OK! So, a sandstorm was raging";
-                        break;
-                    case "hail":
-                    case "hailstorm":
-                        d.setWthr(3);
-                        to_send = "OK! So, it was hailing";
-                        break;
-                    default:
-                        to_send = "That is a very weird weather!";
-                }
-            } else
-                to_send="Create a PM Damage Calculator App first!";
-            e.getChannel().sendMessage(to_send).queue();
-        }
+            Damage d = data.get(aid);
+            switch (msg[1]) {
+                case "sunny":
+                case "sun":
+                    d.setWthr(0);
+                    to_send = "OK! So, the weather was sunny";
+                    break;
+                case "rainy":
+                case "rain":
+                    d.setWthr(1);
+                    to_send = "OK! So, it was raining";
+                    break;
+                case "sandstorm":
+                    d.setWthr(2);
+                    to_send = "OK! So, a sandstorm was raging";
+                    break;
+                case "hail":
+                case "hailstorm":
+                    d.setWthr(3);
+                    to_send = "OK! So, it was hailing";
+                    break;
+                default:
+                    to_send = "That is a very weird weather!";
+            }
+        } else
+            to_send="Create a PM Damage Calculator App first!";
+        e.getChannel().sendMessage(to_send).queue();
     }
 }

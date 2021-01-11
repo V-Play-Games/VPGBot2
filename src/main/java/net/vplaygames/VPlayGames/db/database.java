@@ -85,7 +85,7 @@ public class database
             "Servine","Serperior","Delibird","Palpitoad","Seismitoad","Swanna","Cryogonal","Haxorus","Whirliepede","Scolipede",
             "Carracosta","Chendulure","Conkeldurr","Amaura","Aurorus","Lucario","Mega Lucario","Weepinbell","Victreebell","Avalugg",
             "Clawitzer","Octillery","Aegislash (Sword Form)","Aegislash (Shield Form)","Alolan Raichu","Togedemaru","Granbul","Lycanroc (Midnight Form)","Mudsdale","Toucannon",
-            "Surskit","Masquerain","Persian","Crobat","Palossand","Stoutland","Pidgeot","Mega Pidgeot","Chicorita","Bayleef",
+            "Surskit","Masquerain","Persian","Crobat","Palossand","Stoutland","Pidgeot","Mega Pidgeot","Chikorita","Bayleef",
             "Meganium","Jigglypuff","Oshawott","Dewott","Samurott","Tepig","Pignite","Emboar","Zebstrika","Rotom",
             "Reuniclus","Espurr","Meowstic","Glalie","Mega Glalie","Liepard","Sharpedo","Mega Sharpedo","Mewtwo","Cyndaquill",
             "Quillava","Typhlosion","Eevee","Dragonite","Garchomp","Mega Garchomp","Kommo-o","Lycanroc (Midday Form)","Rayquaza","Metagross",

@@ -25,6 +25,11 @@ public class PMCommand
     public static void PMCommand(GuildMessageReceivedEvent e)
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
+        if (msg.length!=2)
+        {
+            e.getChannel().sendMessage("Invalid Amount of inputs.").queue();
+            return;
+        }
         long aid = e.getAuthor().getIdLong();
         String to_send;
         if(msg[1].equals("start"))

@@ -43,7 +43,7 @@ public class botresources
         botStaff[botStaff.length-1] = 28;
     }
     public static boolean isStaff(long aid) {
-        return botStaff[Array.returnID(botStaff, aid)] == 28;
+        return botStaff[Array.returnID(botStaff, aid)]!=28;
     }
     public static void newStaff(long aid) {
         botStaff[Array.returnID(botStaff,0)] = aid;

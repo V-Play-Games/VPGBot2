@@ -28,6 +28,11 @@ public class ChooseCommand
     public static void ChooseCommand(GuildMessageReceivedEvent e)
     {
         String[] msg = e.getMessage().getContentRaw().split(" ");
+        if (msg.length!=2)
+        {
+            e.getChannel().sendMessage("Invalid Amount of inputs.").queue();
+            return;
+        }
         int tstr,i;
         long aid=e.getAuthor().getIdLong();
         String to_send;

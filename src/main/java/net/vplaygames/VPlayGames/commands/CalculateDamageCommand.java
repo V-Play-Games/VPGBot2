@@ -35,8 +35,6 @@ public class CalculateDamageCommand
             if(data.get(aid).isVerified())
             {
                 Damage d = data.get(aid);
-                String wthr=((d.getWthr()[0]==1)?"the weather was sunny":((d.getWthr()[1]==1)?"it was raining":((d.getWthr()[2]==1)?"there was a sandstorm":((d.getWthr()[3]==1)?"it was hailing":"the weather was normal"))));
-                String trgt_msg = (d.getMod()[2]==1)?"the target was the only opponent affected by the move":"there "+((d.getMod()[2]==2)?"was 1 more opponent":"were 2 more opponents")+" affected by the move";
                 int off = d.getStats()[0][d.getMInfo()[2]];
                 int def = d.getStats()[1][d.getMInfo()[2]+2];
                 int bp = d.getMInfo()[0];
@@ -55,7 +53,14 @@ public class CalculateDamageCommand
                 double mod = ch*se*wthr_boost*sprd;
                 long dmg = round(floor(floor(bp*smb)*off/def*mod*roll));
                 to_send="Formula:- (int: (int: "+bp+"x"+smb+" ) x ( (int: "+off+"x"+buff_off+") / (int: "+def+"x"+buff_def+" ) ) x ( "+ch+"x"+se+"x"+wthr_boost+"x"+sprd+" ) x "+roll+" );"+
-                        "\n\""+returnSP(d.getUid())+"\" with "+off+" "+((d.getMInfo()[2]==1)?"Special":"Physical")+" Attack stat, while using "+d.getMvnam()+" at sync move level "+d.getSml()+", can deal "+dmg+" damage to an opponent with "+def+" "+((d.getMInfo()[2]==1)?"Special":"Physical")+" Defense stat provided that "+trgt_msg+", "+wthr+", the hit was "+((d.getMod()[0]==0)?"not ":"")+"a critical hit and was "+((d.getMInfo()[1]==0)?"":"super ")+"effective against the opponent.";
+                        "\n\""+returnSP(d.getUid())+"\" with "+
+                        off+" "+((d.getMInfo()[2]==1)?"Special":"Physical")+" Attack stat, while using "+
+                        d.getMvnam()+" at sync move level "+d.getSml()+
+                        ", can deal "+dmg+ " damage to an opponent with "+
+                        def+" "+((d.getMInfo()[2]==1)?"Special":"Physical")+" Defense stat provided that "+
+                        d.getTrgtMsg()+", "+d.getWthrMsg()+
+                        ", the hit was "+ ((d.getMod()[0]==0)?"not ":"")+"a critical hit and was "+
+                        ((d.getMod()[1]==0)?"":"super ")+"effective against the opponent.";
             } else
                 to_send="Verify yourself using\""+prefix+"verify\" command first!";
         } else

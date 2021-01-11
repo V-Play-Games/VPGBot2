@@ -15,26 +15,129 @@
  */
 package net.vplaygames.VPlayGames.util;
 
-public class Array
-{
+public class Array {
+    public static boolean contains(String a, String[] b) {
+        return Strings.equalsAnyIgnoreCase(a, b);
+    }
+
+    public static boolean contains(long a, long[] b) {
+        boolean bool = false;
+        for (long l:b)bool=bool||a==l;
+        return bool;
+    }
+
     public static int returnID(String[] a, String b) {
-        for (int i = 0; i<a.length; i++)
+        for (int i = 0; i < a.length; i++)
             if (b.equalsIgnoreCase(a[i]))
                 return i;
-        return a.length-1;
+        return a.length - 1;
+    }
+
+    public static int returnID(char[] a, char b) {
+        for (int i = 0; i < a.length; i++)
+            if (b == a[i])
+                return i;
+        return a.length - 1;
     }
 
     public static int returnID(long[] a, long b) {
-        for (int i = 0; i<a.length; i++)
-            if (b==a[i])
+        for (int i = 0; i < a.length; i++)
+            if (b == a[i])
                 return i;
-        return a.length-1;
+        return a.length - 1;
     }
 
     public static int returnID(int[] a, int b) {
-        for (int i = 0; i<a.length; i++)
-            if (b==a[i])
+        for (int i = 0; i < a.length; i++)
+            if (b == a[i])
                 return i;
-        return a.length-1;
+        return a.length - 1;
+    }
+
+    public static int sumAll(int[] a) {
+        int b = 0;
+        for (int i : a) {
+            b += i;
+        }
+        return b;
+    }
+
+    public static int sumAll(Integer[] a) {
+        int b = 0;
+        for (int i : a) {
+            b += i;
+        }
+        return b;
+    }
+
+    public static String toString(String delimiter, Object[] a, String def) {
+        if (a == null) return def;
+        if (a.length == 0) return def;
+        StringBuilder b = new StringBuilder().append(a[0]);
+        for (int i = 1; i < a.length; i++)
+            b.append(delimiter).append(a[i]);
+        return b.toString();
+    }
+
+    public static String toString(String delimiter, int[] a, String def) {
+        if (a == null) return def;
+        if (a.length == 0) return def;
+        StringBuilder b = new StringBuilder().append(a[0]);
+        for (int i = 1; i < a.length; i++)
+            b.append(delimiter).append(a[i]);
+        return b.toString();
+    }
+
+    public static String toString(String delimiter, String[] a, String def) {
+        if (a == null) return def;
+        if (a.length == 0) return def;
+        StringBuilder b = new StringBuilder().append("\"").append(a[0]).append("\"");
+        for (int i = 1; i < a.length; i++)
+            b.append(delimiter).append("\"").append(a[i]).append("\"");
+        return b.toString();
+    }
+
+    public static String toString(String delimiter1, String delimiter2, String startWith, String endWith, int[][] a, String def) {
+        if (a == null) return def;
+        if (a.length == 0) return def;
+        StringBuilder b = new StringBuilder().append(startWith).append(toString(delimiter2, a[0], def)).append(endWith);
+        for (int i = 1; i < a.length; i++)
+            b.append(delimiter1).append(startWith).append(toString(delimiter2, a[i], def)).append(endWith);
+        return b.toString();
+    }
+
+    public static String manyToString(int[]... a) {
+        StringBuilder s = new StringBuilder().append(toString(a[0]));
+        for (int[] b : a) s.append(";").append(toString(b));
+        return s.toString();
+    }
+
+    public static String manyToString(int[][]... a) {
+        StringBuilder s = new StringBuilder().append(toString(a[0]));
+        for (int[][] b : a) s.append(";").append(toString(b));
+        return s.toString();
+    }
+
+    public static String toString(int[] a) {
+        return "[" + Array.toString(",", a, "") + "]";
+    }
+
+    public static String toString(int[][] a) {
+        return "[" + Array.toString("-", ",", "[", "]", a, "") + "]";
+    }
+
+    public static int[] stringToInt(String[] a) {
+        int[] b = new int[a.length];
+        for (int i = 0; i < a.length; i++)
+            b[i] = Strings.toInt(a[1]);
+        return b;
+    }
+
+    public static String[] castToStringArray(Object[] a) {
+        String[] b = new String[a.length];
+        for(int i = 0; i<a.length; i++) {
+            b[i] = a[i].toString();
+        }
+        return b;
     }
 }

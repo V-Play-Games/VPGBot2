@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.processors;
+package net.vplaygames.VPlayGames.commands.botStaff;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Response;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.processors.EventHandler;
+import net.vplaygames.VPlayGames.util.MiscUtil;
 
-public class CommonCommands
-{
-    public static boolean process(GuildMessageReceivedEvent e) {
-        new Response(e.getMessage());
-        String[] msg = Commands.split(e.getMessage().getContentRaw());
-        Bot.commands.get(msg[0]).run(e);
-        return true;
+public class WipeCommand extends Command {
+    public WipeCommand() {
+        super("wipe");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
+        Bot.DATA.clear();
+        Bot.DAMAGE_CODES.clear();
+        MiscUtil.send(EventHandler.getCurrent(),"All Data Wiped!",true);
     }
 }

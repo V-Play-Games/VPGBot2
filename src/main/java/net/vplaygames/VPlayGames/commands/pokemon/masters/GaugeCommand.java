@@ -15,36 +15,42 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Number;
 import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class GaugeCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
+import static net.vplaygames.VPlayGames.data.Bot.DATA;
+
+public class GaugeCommand extends Command {
+    public GaugeCommand() {
+        super("gauge");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         if (msg.length!=2)
         {
-            MiscUtil.send(e, Bot.current.INVALID_INPUTS,true);
+            MiscUtil.send(e, Bot.INVALID_INPUTS,true);
             return;
         }
-        String to_send;
+        String toSend;
         long aid=e.getAuthor().getIdLong();
-        if(Bot.current.DATA.containsKey(aid))
+        if(DATA.containsKey(aid))
         {
-            Damage d = Bot.current.DATA.get(aid);
+            Damage d = DATA.get(aid);
             if(Number.isBetween(msg[1],1,6)) {
                 d.setGauge(Strings.toInt(msg[1]));
-                to_send="Set the gauge to "+ Strings.toInt(msg[1])+"!";
+                toSend="Set the gauge to "+ Strings.toInt(msg[1])+"!";
             } else
-                to_send="Invalid Input! "+Strings.toInt(msg[1])+" Gauge Level not possible!";
-            Bot.current.DATA.put(aid,d);
+                toSend="Invalid Input! "+Strings.toInt(msg[1])+" Gauge Level not possible!";
+            DATA.put(aid,d);
         } else
-            to_send="Create a PM Damage Calculator App first!";
-        MiscUtil.send(e,to_send,true);
+            toSend=Bot.APP_NOT_STARTED;
+        MiscUtil.send(e,toSend,true);
     }
 }

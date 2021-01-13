@@ -15,69 +15,81 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Response;
-import net.vplaygames.VPlayGames.core.UserEmbedInfo;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.PokeMasDB.Caches.*;
-import net.vplaygames.VPlayGames.PokeMasDB.Entities.*;
-import net.vplaygames.VPlayGames.PokeMasDB.JSONFramework.JSONArray;
-import net.vplaygames.VPlayGames.util.Array;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.vplaygames.VPlayGames.util.Strings;
+import com.vplaygames.PM4J.caches.*;
+import com.vplaygames.PM4J.caches.framework.Cache.Type;
+import com.vplaygames.PM4J.entities.*;
+import com.vplaygames.PM4J.jsonFramework.JSONArray;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Command;
+import net.vplaygames.VPlayGames.core.Response;
+import net.vplaygames.VPlayGames.core.UserEmbedInfo;
+import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.processors.EventHandler;
+import net.vplaygames.VPlayGames.util.Array;
+import net.vplaygames.VPlayGames.util.EmbedUtil;
+import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.util.Strings;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.StringJoiner;
 
-import static net.vplaygames.VPlayGames.PokeMasDB.Caches.Cache.Type.*;
+import static com.vplaygames.PM4J.caches.framework.Cache.Type.*;
+import static net.vplaygames.VPlayGames.data.Bot.PREFIX;
 
-public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
-    private static SearchCommand instance;
-    TrainerDataCache tdc;
-    MoveDataCache mdc;
-    SkillDataCache sdc;
-    PokemonDataCache pdc;
+public class SearchCommand extends Command {
+    private static HashMap<Long, UserEmbedInfo> dataMap = new HashMap<>();
 
-    private SearchCommand() {
-        PokemasDBCache.getInstance(false);
+    static TrainerDataCache tdc;
+    static MoveDataCache mdc;
+    static SkillDataCache sdc;
+    static PokemonDataCache pdc;
+
+    public SearchCommand() {
+        super("search");
+        if (PokemasDBCache.getInstance()==null) {
+            throw new IllegalStateException("Data from pokemasdb.com has not been processed yet.");
+        }
         tdc = TrainerDataCache.getInstance();
         mdc = MoveDataCache.getInstance();
         sdc = SkillDataCache.getInstance();
         pdc = PokemonDataCache.getInstance();
     }
 
-    public static SearchCommand getInstance() {
-        return instance != null ? instance : (instance = new SearchCommand());
-    }
-
-    public void processSearch(GuildMessageReceivedEvent e) {
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
-        if (msg.length < 3) {
-            MiscUtil.send(e, Bot.current.INVALID_INPUTS, true);
+        if (msg.length < 2) {
+            MiscUtil.send(e, Bot.INVALID_INPUTS, true);
             return;
         }
-        if (!Cache.Type.isType(msg[1])) {
-            MiscUtil.send(e, "Cannot find search method \"" + msg[1] + "\"", true);
-            return;
+        String data;
+        Type tempType = Type.parseType(msg[1]);
+        if (tempType != UNKNOWN) {
+            data = e.getMessage().getContentRaw().substring(msg[0].length() + msg[1].length() + 2);
+        } else {
+            data = e.getMessage().getContentRaw().substring(msg[0].length() + 1);
+            for (Type t : Type.values()) {
+                if (t != UNKNOWN && t.getCache().containsKey(data)) {
+                    tempType = t;
+                }
+            }
         }
-        String data = e.getMessage().getContentRaw().substring(msg[0].length() + msg[1].length() + 2);
-        Cache.Type dataType = Cache.Type.parseType(msg[1]);
+        Type dataType = tempType;
         if (!dataType.getCache().containsKey(data)) {
             MiscUtil.send(e, dataType.toString() + " \"" + data + "\" not found.", true);
             return;
         }
         EmbedBuilder eb;
         String toSend;
-        if (dataType.isTurnable()) {
+        if (isTurnable(dataType)) {
             int limit;
             if (dataType == TRAINER) {
-                TrainerData td = tdc.get(data);
-                eb = prepareEmbed(td, e.getAuthor().getName());
-                limit = td.pokemon.length;
+                Trainer t = tdc.get(data);
+                eb = prepareEmbed(t, e.getAuthor().getName());
+                limit = t.getPokemon().length;
             } else {
                 ArrayList<Pokemon> pd = pdc.get(data);
                 eb = prepareEmbed(pd);
@@ -85,14 +97,14 @@ public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
             }
             eb.setFooter(getFooter(1, limit + 1));
             e.getChannel().sendMessage(eb.build()).queue(response ->
-                    this.put(e.getAuthor().getIdLong(),
+                    dataMap.put(e.getAuthor().getIdLong(),
                             new UserEmbedInfo(e.getAuthor().getIdLong(),
                                     response.getIdLong(),
                                     data,
                                     limit,
                                     dataType)));
             toSend = e.getAuthor().getAsMention() + ", You have opened a new " + dataType.toString().toLowerCase() + " search query!\n" +
-                    "Any previous queries of yours will not be used to turn pages with ``" + Bot.current.PREFIX + "next`` & ``" + Bot.current.PREFIX + "back``";
+                    "Any previous queries of yours will not be used to turn pages with `" + PREFIX + "next` & `" + PREFIX + "back`";
             e.getChannel().sendMessage(toSend).queue();
         } else {
             if (dataType == MOVE) {
@@ -101,86 +113,41 @@ public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
                 eb = prepareEmbed(sdc.get(data));
             }
             eb.setThumbnail(e.getAuthor().getEffectiveAvatarUrl())
-                    .setFooter("Requested by: " + e.getAuthor().getAsTag() + MiscUtil.dateTimeNow(), e.getAuthor().getEffectiveAvatarUrl());
+                    .setFooter("Requested by: " + e.getAuthor().getAsTag() +" "+ MiscUtil.dateTimeNow(), e.getAuthor().getEffectiveAvatarUrl());
             e.getChannel().sendMessage(eb.build()).queue();
             toSend = dataType.toString() + " Data for " + data;
         }
-        Response.get(Bot.current.messagesProcessed).Responded(toSend);
-    }
-
-    public void processNavigation(GuildMessageReceivedEvent e) {
-        boolean next = e.getMessage().getContentRaw().startsWith(Bot.current.PREFIX + "n");
-        long aid = e.getAuthor().getIdLong();
-        if (!this.containsKey(aid)) {
-            return;
-        }
-        UserEmbedInfo uei = this.get(aid);
-        String tos;
-        delete(e.getMessage());
-        if (uei.proceed(next)) {
-            try {
-                Message m = e.getChannel().retrieveMessageById(uei.embedId).complete();
-                if (m == null)
-                    throw new Exception();
-                int prog = uei.progress;
-                boolean start = prog == 0;
-                EmbedBuilder eb;
-                if (uei.type == POKEMON) {
-                    ArrayList<Pokemon> pokes = pdc.get(uei.dataTitle);
-                    if (start) {
-                        eb = prepareEmbed(pokes);
-                    } else {
-                        eb = prepareEmbed(pokes.get(prog - 1));
-                    }
-                } else {
-                    TrainerData tdata = tdc.get(uei.dataTitle);
-                    if (start) {
-                        eb = prepareEmbed(tdata, "");
-                    } else {
-                        eb = prepareEmbed(tdata.pokemonData.get(prog - 1));
-                    }
-                }
-                m.editMessage(eb.setFooter(getFooter((start ? 0 : prog ) + 1, uei.limit + 1)).build()).queue();
-                tos = "Changed the page from " + (prog + (next ? 0 : 1)) + " to " + (prog + (next ? 1 : 0)) + "\nJump to the message from the link: " + m.getJumpUrl();
-            } catch (Exception exc) {
-                uei.proceed(!next);
-                tos = "An error occurred while finding the query message!";
-                exc.printStackTrace();
-            }
-        } else {
-            tos = "You're at the " + (next ? "end" : "start") + " of the query result. Can't turn the page any further";
-        }
-        e.getChannel().sendMessage(tos).queue();
+        Response.get(Bot.messagesProcessed).responded(toSend);
     }
 
 
-    public EmbedBuilder prepareEmbed(TrainerData td, String name) {
+    public static EmbedBuilder prepareEmbed(Trainer td, String name) {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle(td.name + "'s Data");
         eb.addField("Details",
                 "**Name:** " + td.name +
                         "\n**Rarity:** " + td.rarity + " Stars" +
-                        "\n**Pokemons:** " + Array.toString(", ", (Object[]) td.pokemon, ""),
+                        "\n**Pokemons:** " + Array.toString(", ", (Object[]) td.getPokemon(), ""),
                 false);
         eb.setImage(td.img);
-        eb.setThumbnail(Bot.current.jda.getSelfUser().getEffectiveAvatarUrl());
+        eb.setThumbnail(Bot.jda.getSelfUser().getEffectiveAvatarUrl());
         if (!"".equals(name) && name != null)
             eb.addField("Requested by", name, false);
         return eb;
     }
 
-    public EmbedBuilder prepareEmbed(Pokemon pokemon) {
+    public static EmbedBuilder prepareEmbed(Pokemon pokemon) {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle(pokemon.name + "'s Data");
         eb.setDescription("Info about " + pokemon.trainer + "'s " + pokemon.name);
         eb.addField("Basic Info",
                 "**Name:** " + pokemon.name +
-                        "\n**Typing:** " + Array.toString(", ", (Object[]) pokemon.typing, "N/A") +
+                        "\n**Typing:** " + Array.toString(", ", (Object[]) pokemon.getTyping(), "N/A") +
                         "\n**Weakness:** " + pokemon.weakness +
                         "\n**Role:** " + pokemon.role +
                         "\n**Rarity:** " + pokemon.rarity + " Stars" +
                         "\n**Gender:** " + pokemon.gender +
-                        "\n**Other Forms:** " + Array.toString(", ", (Object[]) pokemon.otherForms, "N/A"),
+                        "\n**Other Forms:** " + Array.toString(", ", (Object[]) pokemon.getOtherForms(), "N/A"),
                 false);
         eb.addField("Advance Info",
                 "\n**Stats:**\n```\n" + getStatsAsSimpleString(pokemon.stats) + "\n```", false);
@@ -193,7 +160,7 @@ public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
         return eb;
     }
 
-    public EmbedBuilder prepareEmbed(MoveDataCache.Node node) {
+    public static EmbedBuilder prepareEmbed(MoveDataCache.Node node) {
         Move m = node.move;
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle(node.move.name + "'s Data");
@@ -207,7 +174,7 @@ public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
                         (m.accuracy == 0 ? "**Never Misses.**" : "**Accuracy:** " + m.accuracy + "%") +
                         (m.minPower == 0
                                 ? "\n**It does not deal any direct damage.**"
-                                : "\n**Power:** " + m.minPower + "->" + Math.round(m.minPower * 1.2)),
+                                : "\n**Power:** " + m.minPower + "->" + Math.floor(m.minPower * 1.2)),
                 false);
         eb.addField("Effect",
                 m.effect,
@@ -218,7 +185,7 @@ public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
         return eb;
     }
 
-    public EmbedBuilder prepareEmbed(SkillDataCache.Node node) {
+    public static EmbedBuilder prepareEmbed(SkillDataCache.Node node) {
         Passive p = node.skill;
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle(p.name + "'s Data");
@@ -227,22 +194,12 @@ public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
                 "**Name:** " + p.name +
                         "\n**Description:** " + p.description,
                 false);
-        Object[][] inbuilt = breakTillValid(node.getInbuilt());
-        for (int i = 0; i<inbuilt.length; i++) {
-            eb.addField(i==0?"It is present as the default passive skills of:":"",
-                    Array.toString(",\n", inbuilt[i], i==0?"None":"")+(i==0?"":","),
-                    false);
-        }
-        Object[][] ingrid = breakTillValid(node.getInGrid());
-        for (int i = 0;i<ingrid.length; i++) {
-            eb.addField(i==0?"It is present on the grid of:":"",
-                    Array.toString(",\n", ingrid[i], i==0?"None":"")+(i==0?"":","),
-                    false);
-        }
+        EmbedUtil.addFieldSafely("It is present as the default passive skills of:",node.getInbuilt(),false,",\n",",","None",eb);
+        EmbedUtil.addFieldSafely("It is present on the grid of:",node.getInGrid(),false,",\n",",","None",eb);
         return eb;
     }
 
-    public EmbedBuilder prepareEmbed(ArrayList<Pokemon> node) {
+    public static EmbedBuilder prepareEmbed(ArrayList<Pokemon> node) {
         EmbedBuilder eb = new EmbedBuilder();
         Pokemon first = node.get(0);
         eb.setTitle(first.name + "'s Data");
@@ -256,45 +213,45 @@ public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
                 nameList.toString(),
                 false);
         eb.addField("General Info",
-                "**Typing:** " + Array.toString(", ", (Object[]) first.typing, "N/A") +
+                "**Typing:** " + Array.toString(", ", (Object[]) first.getTyping(), "N/A") +
                         "\n**Weakness:** " + first.weakness,
                 false);
         return eb;
     }
 
 
-    private String getStatsAsSimpleString(StatRange stats) {
+    private static String getStatsAsSimpleString(StatRange stats) {
         return "      |  HP | Atk | Def | SpA | SpD | Spe" +
                "\nBASE: | " + getWithSpaces(stats.base.hp) + " | " + getWithSpaces(stats.base.atk) + " | " + getWithSpaces(stats.base.def) + " | " + getWithSpaces(stats.base.spAtk) + " | " + getWithSpaces(stats.base.spDef) + " | " + getWithSpaces(stats.base.speed) +
                "\nMAX:  | " + getWithSpaces(stats.max .hp) + " | " + getWithSpaces(stats.max .atk) + " | " + getWithSpaces(stats.max .def) + " | " + getWithSpaces(stats.max .spAtk) + " | " + getWithSpaces(stats.max .spDef) + " | " + getWithSpaces(stats.max .speed) +
                "\nMax Bulk: " + stats.max.bulk;
     }
 
-    private String getWithSpaces(int a) {
+    private static String getWithSpaces(int a) {
         return MiscUtil.space(3 - Integer.toString(a).length()) + a;
     }
 
-    private String getMovesAsSimpleString(JSONArray<Move> moves) {
+    private static String getMovesAsSimpleString(JSONArray<Move> moves) {
         StringJoiner tor = new StringJoiner("\n");
         int i = 1;
         for (Move move : moves) {
             tor.add("__Move " + (i++) + ": " + move.name +
                     "__\n-> It is a " + move.type + " type " + move.category + " move, which targets " + (move.target.equals("Self") ? "the user itself" : move.target.toLowerCase()) +
                     ".\n-> It uses " + (move.cost == 0 ? "no" : move.cost) + " bars & " + (move.accuracy == 0 ? "it never misses." : "has " + move.accuracy + "% accuracy.") +
-                    "\n-> It" + (move.minPower == 0 ? " does not deal any direct damage." : "s power varies between " + move.minPower + "-" + Math.round(move.minPower * 1.2)) +
-                    "\n-> Effect: " + move.effect);
+                    "\n-> It" + (move.minPower == 0 ? " does not deal any direct damage." : "s power varies between " + move.minPower + "-" + Math.floor(move.minPower * 1.2)) +
+                    "\n-> It " + (move.effect.startsWith("No ")?"has no additional effects":move.effect.toLowerCase().charAt(0)+move.effect.substring(1)+"."));
         }
         return tor.toString().substring(0, tor.length() - 1);
     }
 
-    private String getSyncMoveAsSimpleString(SyncMove sm) {
+    private static String getSyncMoveAsSimpleString(SyncMove sm) {
         return "__" + sm.name +
                 "__\n-> It is a " + sm.type + " type " + sm.category + " move, which targets " + (sm.target.equals("Self") ? "the user itself" : sm.target.toLowerCase()) +
                 "\n-> It" + (sm.minPower == 0 ? " does not deal any direct damage." : "s power varies between " + sm.minPower + "-" + Math.round(sm.minPower * 1.2)) +
                 "\n-> Description: " + sm.description + "\n";
     }
 
-    private String getPassivesAsSimpleString(JSONArray<Passive> passives) {
+    private static String getPassivesAsSimpleString(JSONArray<Passive> passives) {
         StringJoiner tor = new StringJoiner("\n");
         int i = 1;
         for (Passive passive : passives) {
@@ -303,60 +260,62 @@ public class SearchCommand extends HashMap<Long,UserEmbedInfo> {
         return tor.toString().substring(0, tor.length() - 1);
     }
 
-    private String getFooter(int a, int b) {
-        return String.format("Showing page [%d/%d] | Use " + Bot.current.PREFIX + "next to go forward or " + Bot.current.PREFIX + "back to go backward.", a, b);
+    private static String getFooter(int a, int b) {
+        return String.format("Showing page [%d/%d] | Use " + PREFIX + "next to go forward or " + PREFIX + "back to go backward.", a, b);
     }
 
-    private void delete(Message m) {
-        try {
-            m.delete().complete();
-        } catch (Exception exc) {
-            exc.printStackTrace();
-        }
+    private static boolean isTurnable(Type type) {
+        return type == POKEMON || type == TRAINER;
     }
 
-    private static Object[][] breakIn(Object[] a, int interval) {
-        ArrayList<Object[]> tor = new ArrayList<>();
-        ArrayList<Object> temp = arrayToList(a);
-        if (temp.size()<interval) {
-            tor.add(a);
-            return tor.toArray(new Object[0][]);
+    public static class NavigationCommands extends Command {
+        public NavigationCommands() {
+            super("next", "n", "back", "back");
         }
-        while (temp.size()>interval) {
-            Object[] anArray = new Object[interval];
-            for (int i = 0; i<anArray.length; i++) {
-                anArray[i] = temp.get(0);
-                temp.remove(0);
+
+        @Override
+        public void onCommandRun(GuildMessageReceivedEvent e) {
+            boolean next = e.getMessage().getContentRaw().startsWith(PREFIX + "n");
+            long aid = e.getAuthor().getIdLong();
+            if (!dataMap.containsKey(aid)) {
+                return;
             }
-            tor.add(anArray);
-        }
-        if (temp.size()>0) {
-            tor.add(temp.toArray());
-        }
-        return tor.toArray(new Object[0][]);
-    }
-
-    private static boolean testIfAllValid(Object[][] a) {
-        boolean tor = true;
-        for (Object[] b : a) {
-            tor = tor && (Array.toString(",\n",b,"None")+",").length()<1024;
-        }
-        return tor;
-    }
-
-    private static <T> ArrayList<T> arrayToList(T[] a) {
-        return new ArrayList<>(Arrays.asList(a));
-    }
-
-    private static Object[][] breakTillValid(Object[] a) {
-        int current = 10;
-        Object[][] tor = {a};
-        while (current>0) {
-            tor = breakIn(a,current--*10);
-            if (testIfAllValid(tor)) {
-                return tor;
+            UserEmbedInfo uei = dataMap.get(aid);
+            String tos;
+            if (uei.proceed(next)) {
+                try {
+                    Message m = e.getChannel().retrieveMessageById(uei.embedId).complete();
+                    if (m == null)
+                        throw new Exception();
+                    int prog = uei.progress;
+                    boolean start = prog == 0;
+                    EmbedBuilder eb;
+                    if (uei.type == POKEMON) {
+                        ArrayList<Pokemon> pokes = pdc.get(uei.dataTitle);
+                        if (start) {
+                            eb = prepareEmbed(pokes);
+                        } else {
+                            eb = prepareEmbed(pokes.get(prog - 1));
+                        }
+                    } else {
+                        Trainer t = tdc.get(uei.dataTitle);
+                        if (start) {
+                            eb = prepareEmbed(t, "");
+                        } else {
+                            eb = prepareEmbed(t.pokemonData.get(prog - 1));
+                        }
+                    }
+                    m.editMessage(eb.setFooter(getFooter((start ? 0 : prog) + 1, uei.limit + 1)).build()).queue();
+                    tos = "Changed the page from " + (prog + (next ? 0 : 1)) + " to " + (prog + (next ? 1 : 0)) + "\nJump to the message from the link: " + m.getJumpUrl();
+                } catch (Exception exc) {
+                    uei.proceed(!next);
+                    tos = "An error occurred while turning the page! Maybe the message was deleted.";
+                    EventHandler.getInstance().process(exc);
+                }
+            } else {
+                tos = "You're at the " + (next ? "end" : "start") + " of the query result. Can't turn the page any further";
             }
+            e.getChannel().sendMessage(tos).queue();
         }
-        return tor;
     }
 }

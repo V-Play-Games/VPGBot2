@@ -15,51 +15,58 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class WeatherCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
+import static net.vplaygames.VPlayGames.data.Bot.DATA;
+
+public class WeatherCommand extends Command {
+    public WeatherCommand() {
+        super("weather");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         if (msg.length!=2)
         {
-            MiscUtil.send(e, Bot.current.INVALID_INPUTS,true);
+            MiscUtil.send(e, Bot.INVALID_INPUTS,true);
             return;
         }
-        String to_send;
+        String toSend;
         long aid=e.getAuthor().getIdLong();
-        if(Bot.current.DATA.containsKey(aid))
+        if(DATA.containsKey(aid))
         {
-            Damage d = Bot.current.DATA.get(aid);
+            Damage d = DATA.get(aid);
             switch (msg[1]) {
                 case "sunny":
                 case "sun":
                     d.setWthr(0);
-                    to_send = "OK! So, the weather was sunny";
+                    toSend = "OK! So, the weather was sunny";
                     break;
                 case "rainy":
                 case "rain":
                     d.setWthr(1);
-                    to_send = "OK! So, it was raining";
+                    toSend = "OK! So, it was raining";
                     break;
                 case "sandstorm":
                     d.setWthr(2);
-                    to_send = "OK! So, a sandstorm was raging";
+                    toSend = "OK! So, a sandstorm was raging";
                     break;
                 case "hail":
                 case "hailstorm":
                     d.setWthr(3);
-                    to_send = "OK! So, it was hailing";
+                    toSend = "OK! So, it was hailing";
                     break;
                 default:
-                    to_send = "That is a very weird weather!";
+                    toSend = "That is a very weird weather!";
             }
+            DATA.put(aid,d);
         } else
-            to_send="Create a PM Damage Calculator App first!";
-        MiscUtil.send(e,to_send,true);
+            toSend=Bot.APP_NOT_STARTED;
+        MiscUtil.send(e,toSend,true);
     }
 }

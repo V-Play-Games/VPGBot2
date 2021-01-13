@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.processors;
+package net.vplaygames.VPlayGames.commands.botStaff;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Response;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.data.Bot;
 
-public class CommonCommands
-{
-    public static boolean process(GuildMessageReceivedEvent e) {
-        new Response(e.getMessage());
-        String[] msg = Commands.split(e.getMessage().getContentRaw());
-        Bot.commands.get(msg[0]).run(e);
-        return true;
+public class TerminateCommand extends Command {
+    public TerminateCommand() {
+        super("terminate");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
+        e.getChannel().sendMessage("Successfully Closed Event Manger!").complete();
+        System.out.println(e.getAuthor().getAsTag()+" ["+e.getAuthor().getIdLong()+"] closed me!!");
+        Bot.closed=true;
     }
 }

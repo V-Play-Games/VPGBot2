@@ -40,20 +40,6 @@ public class Array {
         return a.length - 1;
     }
 
-    public static int returnID(long[] a, long b) {
-        for (int i = 0; i < a.length; i++)
-            if (b == a[i])
-                return i;
-        return a.length - 1;
-    }
-
-    public static int returnID(int[] a, int b) {
-        for (int i = 0; i < a.length; i++)
-            if (b == a[i])
-                return i;
-        return a.length - 1;
-    }
-
     public static int sumAll(int[] a) {
         int b = 0;
         for (int i : a) {
@@ -107,14 +93,14 @@ public class Array {
     }
 
     public static String manyToString(int[]... a) {
-        StringBuilder s = new StringBuilder().append(toString(a[0]));
-        for (int[] b : a) s.append(";").append(toString(b));
+        StringBuilder s = new StringBuilder();
+        for (int[] b : a) s.append(toString(b)).append(";");
         return s.toString();
     }
 
     public static String manyToString(int[][]... a) {
-        StringBuilder s = new StringBuilder().append(toString(a[0]));
-        for (int[][] b : a) s.append(";").append(toString(b));
+        StringBuilder s = new StringBuilder();
+        for (int[][] b : a) s.append(toString(b)).append(";");
         return s.toString();
     }
 
@@ -129,15 +115,7 @@ public class Array {
     public static int[] stringToInt(String[] a) {
         int[] b = new int[a.length];
         for (int i = 0; i < a.length; i++)
-            b[i] = Strings.toInt(a[1]);
-        return b;
-    }
-
-    public static String[] castToStringArray(Object[] a) {
-        String[] b = new String[a.length];
-        for(int i = 0; i<a.length; i++) {
-            b[i] = a[i].toString();
-        }
+            b[i] = Strings.toInt(a[i]);
         return b;
     }
 }

@@ -15,37 +15,21 @@
  */
 package net.vplaygames.VPlayGames.util;
 
+import java.util.StringJoiner;
+
+import static net.vplaygames.VPlayGames.data.Bot.BASE64;
+
 public class Strings {
-    public static String removeNewLine(String a) {
-        String tor = "";
-        for (int i = 0; i < a.length(); i++) {
-            if (a.charAt(i) == '\n') i++;
-            else tor += a.charAt(i);
+    public static String valueOf(Throwable t) {
+        StringJoiner tor = new StringJoiner("\n").add(t.toString());
+        StackTraceElement[] stack = t.getStackTrace();
+        for (StackTraceElement ste : stack) {
+            tor.add("\tat " + ste);
         }
-        return tor;
-    }
-
-    public static boolean checkAndDisplayDifference(String a, String b) {
-        boolean rslt = a.length() == b.length();
-        boolean tor = rslt;
-        for (int i = 0; i < a.length() && i < b.length(); i++) {
-            rslt = a.charAt(i) == b.charAt(i);
-            if (!rslt) {
-                System.out.println("I found a difference at-\na: \"" +
-                        substringAround(a, i, 5) +
-                        "\"\nb: \"" + substringAround(b, i, 5) + "\"");
-            }
-            tor = rslt && tor;
+        Throwable cause = t.getCause();
+        if (cause!=null) {
+            tor.add("Caused by: "+valueOf(cause));
         }
-        return tor;
-    }
-
-    public static String substringAround(String a, int i, int b) {
-        int start = Math.max(0, i - b);
-        int end = Math.min(a.length(), i + b);
-        StringBuilder tor = new StringBuilder();
-        for (int j = start; j < end; j++)
-            tor.append((j == i) ? "|" + a.charAt(j) + "|" : a.charAt(j));
         return tor.toString();
     }
 
@@ -87,11 +71,13 @@ public class Strings {
         return tor;
     }
 
-    public static String removeAll(String s, String... tbr) {
+    public static String reduceToAlphanumeric(String s) {
         StringBuilder tor = new StringBuilder();
-        for (int i = 0; i < s.length(); i++)
-            if (!Array.contains(String.valueOf(s.charAt(i)), tbr))
+        for (int i = 0; i<s.length(); i++) {
+            if (BASE64.substring(0,BASE64.length()-2).contains(Character.toString(s.charAt(i)))) {
                 tor.append(s.charAt(i));
+            }
+        }
         return tor.toString();
     }
 }

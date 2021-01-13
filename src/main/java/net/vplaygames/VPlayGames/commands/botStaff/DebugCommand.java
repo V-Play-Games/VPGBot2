@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.processors;
+package net.vplaygames.VPlayGames.commands.botStaff;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Response;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.util.MiscUtil;
 
-public class CommonCommands
-{
-    public static boolean process(GuildMessageReceivedEvent e) {
-        new Response(e.getMessage());
-        String[] msg = Commands.split(e.getMessage().getContentRaw());
-        Bot.commands.get(msg[0]).run(e);
-        return true;
+public class DebugCommand extends Command {
+    public DebugCommand() {
+        super("debug");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
+        String s=String.valueOf(Bot.DATA.getOrDefault(Long.parseLong(e.getMessage().getContentRaw().split(" ")[1]),null));
+        MiscUtil.send(e,s,true);
     }
 }

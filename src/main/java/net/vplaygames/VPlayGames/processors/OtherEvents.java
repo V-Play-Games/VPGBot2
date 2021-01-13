@@ -22,31 +22,31 @@ import net.vplaygames.VPlayGames.util.Strings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class OtherEvents
-{
+public class OtherEvents {
     public static boolean process(GuildMessageReceivedEvent e) {
-        boolean tor=false;
-        String MSG=e.getMessage().getContentRaw();
-        if (Strings.equalsAnyIgnoreCase(MSG,"Hi","Hey","Hello","Bye")&&e.getChannel().canTalk())
-            e.getChannel().sendMessage(Strings.toProperCase(MSG)).queue();
-        if (MSG.contains(e.getJDA().getSelfUser().getAsMention()))
-            tor=BotPingedEvent(e);
+        boolean tor = false;
+        String MSG = e.getMessage().getContentRaw();
+        if (Strings.equalsAnyIgnoreCase(Strings.reduceToAlphanumeric(MSG), "Hi", "Hey", "Hello", "Bye")) {
+            new Response(e.getMessage());
+            MiscUtil.send(e,Strings.toProperCase(MSG),true);
+        } if (e.getMessage().getMentionedUsers().contains(e.getJDA().getSelfUser()))
+            tor = BotPingedEvent(e);
         return tor;
     }
 
-    public static boolean BotPingedEvent(GuildMessageReceivedEvent e)
-    {
+    public static boolean BotPingedEvent(GuildMessageReceivedEvent e) {
+        String devMention = e.getJDA().retrieveUserById(Bot.BOT_OWNER).complete().getAsMention();
         EmbedBuilder emb = new EmbedBuilder();
         emb.setAuthor("V Play Games Bot Info");
-        emb.setDescription("A Pokemon-related bot created by @V Play Games#9783");
+        emb.setDescription("A Pokemon-related bot created by "+devMention);
         emb.setThumbnail(e.getJDA().getSelfUser().getAvatarUrl());
         emb.setColor(0x1abc9c);
-        emb.addField("Developer",e.getJDA().getUserById(Bot.current.BOT_OWNER).getAsMention(),true);
-        emb.addField("Version","1.4.0",true);
-        emb.addField("Server Count",Integer.toString(e.getJDA().getGuilds().size()),false);
-        emb.setFooter("Requested "+ MiscUtil.dateTimeNow());
-        e.getChannel().sendMessage("Prefix: "+Bot.current.PREFIX).embed(emb.build()).queue();
-        new Response(e.getMessage()).Responded("Bot-Pinged-Message");
+        emb.addField("Developer", devMention, true);
+        emb.addField("Version", Bot.VERSION, true);
+        emb.addField("Server Count", Integer.toString(e.getJDA().getGuilds().size()), false);
+        emb.setFooter("Sent " + MiscUtil.dateTimeNow());
+        e.getChannel().sendMessage("Prefix: " + Bot.PREFIX).embed(emb.build()).queue();
+        new Response(e.getMessage()).responded("Bot-Pinged-Message");
         return true;
     }
 }

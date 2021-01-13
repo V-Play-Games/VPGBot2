@@ -17,17 +17,6 @@ package net.vplaygames.VPlayGames.util;
 
 public class Number
 {
-    public static String toStringWithCommas(java.lang.Number num) {
-        String origin = new StringBuilder(num.toString()).reverse().toString();
-        StringBuilder tor = new StringBuilder();
-        for (int i = 0; i < origin.length(); ) {
-            tor.append(origin.charAt(i));
-            if (++i % 3 == 0 && i != origin.length())
-                tor.append(',');
-        }
-        return tor.reverse().toString();
-    }
-
     public static String toStringOfLength(int len, java.lang.Number num) {
         String tor = num.toString();
         tor=tor.substring(0,Math.min(tor.length(),len));
@@ -35,10 +24,6 @@ public class Number
             tor="0"+tor;
         }
         return tor;
-    }
-
-    public static long roundInRange(long val, long start, long end) {
-        return Math.min(Math.max(val,start),end);
     }
 
     public static boolean isBetween(int n, int lowerValue,int upperValue) {

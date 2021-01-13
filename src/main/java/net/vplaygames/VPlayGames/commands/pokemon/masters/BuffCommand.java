@@ -15,40 +15,46 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class BuffCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
+import static net.vplaygames.VPlayGames.data.Bot.DATA;
+
+public class BuffCommand extends Command {
+    public BuffCommand() {
+        super("buff");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
-        String s;
+        String toSend;
         long aid=e.getAuthor().getIdLong();
-        if (Bot.current.DATA.containsKey(aid))
+        if (DATA.containsKey(aid))
         {
-            if(Bot.current.DATA.get(aid).getAppStatus()>1)
+            if(DATA.get(aid).getAppStatus()>1)
             {
                 if(msg.length>=4)
-                    s=returnBuffMsg(msg[2],msg[1], Strings.toInt(msg[3]),aid);
+                    toSend=returnBuffMsg(msg[2],msg[1], Strings.toInt(msg[3]),aid);
                 else
-                    s="Not enough Inputs";
+                    toSend="Not enough Inputs";
             } else
-                s="Please choose a Sync Pair first!";
+                toSend="Please choose a Sync Pair first!";
         } else
-            s="Start a Pokemon Masters Damage Calculation Application first!";
-        MiscUtil.send(e,s,true);
+            toSend=Bot.APP_NOT_STARTED;
+        MiscUtil.send(e,toSend,true);
     }
 
     public static String returnBuffMsg(String m, String target, int b, long aid)
     {
-        Damage d = Bot.current.DATA.get(aid);
+        Damage d = DATA.get(aid);
         String bff_nm;
         int t;
-        switch (target) {
+        switch (target.toLowerCase()) {
             case "user":
             case "u":
                 t=0;
@@ -62,8 +68,8 @@ public class BuffCommand
         }
         if(b<-6||b>6)
             return "Invalid Stat! "+((b<0)?"":"+")+b+" stat buff not possible.";
-        switch (m) {
-            case "att":
+        switch (m.toLowerCase()) {
+            case "atk":
                 d.setBuffs(t,0,b);
                 bff_nm="attack";
                 break;
@@ -94,7 +100,7 @@ public class BuffCommand
             default:
                 return "Cannot find sub-entry \""+m+"\" in entry \""+target+"\" in list \"stats\"";
         }
-        Bot.current.DATA.put(aid,d);
+        DATA.put(aid,d);
         return "Set the "+((t==1)?"target":"**"+MiscUtil.returnSP(d.getUid())+"**")+"'s "+bff_nm+" stat buff to "+b+"!";
     }
 }

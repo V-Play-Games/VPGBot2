@@ -15,44 +15,49 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.core.SkillGroup;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.Array;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
+import static net.vplaygames.VPlayGames.data.Bot.DATA;
 import static net.vplaygames.VPlayGames.data.GameData.skillNames;
 
-public class SkillCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
-        String msg = e.getMessage().getContentRaw(),skill,to_send;
+public class SkillCommand extends Command {
+    public SkillCommand() {
+        super("skill");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
+        String msg = e.getMessage().getContentRaw(),skill,toSend;
         long aid = e.getAuthor().getIdLong();
         int tstr;
-        if (Bot.current.DATA.containsKey(aid))
+        if (DATA.containsKey(aid))
         {
-            Damage d = Bot.current.DATA.get(aid);
+            Damage d = DATA.get(aid);
             if (d.getAppStatus()>3)
             {
-                skill=msg.substring(Bot.current.PREFIX.length()+6);
+                skill=msg.substring(Bot.PREFIX.length()+6);
                 tstr= Array.returnID(skillNames,skill.substring(0,skill.length()-(SkillGroup.isIntensive(skill)?2:0)));
-                to_send="Wait... Let me check, if there is any skill with this name.\n";
-                MiscUtil.send(e,to_send,true);
+                toSend="Wait... Let me check, if there is any skill with this name.\n";
+                MiscUtil.send(e,toSend,true);
                 if (skillNames[tstr].equals("NA"))
-                    to_send="I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
+                    toSend="I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
                 else
                 {
                     d.addSkill(skill);
-                    to_send="Succesfully added "+ Strings.toProperCase(skill)+" as a skill in your damage app,";
+                    toSend="Succesfully added "+ Strings.toProperCase(skill)+" as a skill in your damage app,";
                 }
             } else
-                to_send="Choose a move first!";
-            Bot.current.DATA.put(aid,d);
+                toSend="Choose a move first!";
+            DATA.put(aid,d);
         } else
-            to_send="To use this command, you have to open up a new Damage Calculation Application.";
-        MiscUtil.send(e,to_send,true);
+            toSend=Bot.APP_NOT_STARTED;
+        MiscUtil.send(e,toSend,true);
     }
 }

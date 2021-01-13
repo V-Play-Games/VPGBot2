@@ -23,34 +23,48 @@ import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
-import static net.vplaygames.VPlayGames.util.MiscUtil.returnSP;
 
-public class SMLCommand extends Command {
-    public SMLCommand() {
-        super("sml");
+public class HPPCommand extends Command {
+    public HPPCommand() {
+        super("hpp");
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
+        if (msg.length != 3) {
+            MiscUtil.send(e, Bot.INVALID_INPUTS, true);
+            return;
+        }
         String toSend;
-        int tstr;
-        long aid=e.getAuthor().getIdLong();
-        if(DATA.containsKey(aid)) {
+        long aid = e.getAuthor().getIdLong();
+        int t;
+        legalityCheck:
+        if (DATA.containsKey(aid)) {
             Damage d = DATA.get(aid);
-            if(d.getAppStatus()>1) {
-                tstr = Strings.toInt(msg[1]);
-                if (tstr < 1 || tstr > 5)
-                    toSend = "Invalid Sync Move Level!";
-                else {
-                    d.setSml(tstr);
-                    toSend="The Sync Move Level of \""+returnSP(d.getUid())+"\" is set to "+tstr+".";
-                }
-            } else
-                toSend="Choose a sync pair first!";
-            DATA.put(aid,d);
+            switch (msg[1].toLowerCase()) {
+                case "user":
+                case "u":
+                    t = 0;
+                    break;
+                case "target":
+                case "t":
+                    t = 1;
+                    break;
+                default:
+                    toSend = "Invalid target \"" + msg[1] + "\".";
+                    break legalityCheck;
+            }
+            int hpp = Strings.toInt(msg[2]);
+            if (hpp < 0 || hpp > 100) {
+                toSend = "HP Percentage cannot be less than 0 or more than 100!";
+                break legalityCheck;
+            }
+            d.setHPP(t, hpp);
+            toSend = "OK! So, the " + (t == 1 ? "target" : "user") + " was at " + hpp + "% HP.";
+            DATA.put(aid, d);
         } else
-            toSend= Bot.APP_NOT_STARTED;
-        MiscUtil.send(e,toSend,true);
+            toSend = Bot.APP_NOT_STARTED;
+        MiscUtil.send(e, toSend, true);
     }
 }

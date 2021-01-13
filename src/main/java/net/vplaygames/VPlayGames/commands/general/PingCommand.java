@@ -15,29 +15,19 @@
  */
 package net.vplaygames.VPlayGames.commands.general;
 
-import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-import java.util.Objects;
+import static net.vplaygames.VPlayGames.data.Bot.jda;
 
-public class PingCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
-        long time = System.currentTimeMillis();
-        try {
-            Objects.requireNonNull(e.getJDA().getUserById(Bot.current.BOT_OWNER))
-                    .openPrivateChannel()
-                    .complete()
-                    .sendMessage("!")
-                    .queue(r -> r.editMessage(Bot.current.PREFIX+"ping by "+e.getAuthor().getAsMention()).queue());
-        } catch (Exception exc) {
-            System.out.println("Oof! An error occurred while generating a ping!");
-            exc.printStackTrace();
-        }
-        time = System.currentTimeMillis()-time;
-        String s="Pong! "+time+" ms\n[Reaction Speed(in %): "+(100.0-time/40)+"%]";
-        MiscUtil.send(e,s,true);
+public class PingCommand extends Command {
+    public PingCommand() {
+        super("ping");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
+        jda.getRestPing().queue((ping) -> MiscUtil.send(e, "Pong!\n**REST Ping**: "+ping+" ms\n**Gateway Ping**: "+jda.getGatewayPing()+" ms", true));
     }
 }

@@ -15,28 +15,22 @@
  */
 package net.vplaygames.VPlayGames;
 
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.PokeMasDB.Caches.PokemasDBCache;
-import net.vplaygames.VPlayGames.processors.EventManager;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.processors.EventHandler;
 
-public class Driver
-{
-    public static void main(String[] args) throws Exception
-    {
-        JDA jda = JDABuilder.createDefault(Bot.TOKEN)
-                .addEventListeners(EventManager.getInstance())
-                .build()
-                .awaitReady();
-        new Bot(jda);
-        jda.getPresence().setActivity(Activity.watching("pokemasdb.com's data & downloading it."));
-        Thread.sleep(1000);
-        PokemasDBCache.getInstance();
-        long memberCount=0;
-        for(Guild g:jda.getGuilds())memberCount+=g.getMemberCount();
-        jda.getPresence().setActivity(Activity.playing("Damage Calculation with "+memberCount+" people in "+jda.getGuilds().size()+" servers"));
+public class Driver {
+    public static void main(String... args) throws Exception {
+        Bot.setCustomStreams();
+        JDABuilder.createDefault(Bot.TOKEN,
+                GatewayIntent.DIRECT_MESSAGES,
+                GatewayIntent.GUILD_MEMBERS,
+                GatewayIntent.GUILD_MESSAGES,
+                GatewayIntent.GUILD_VOICE_STATES,
+                GatewayIntent.GUILD_EMOJIS)
+                .addEventListeners(EventHandler.getInstance())
+                .build();
+        Bot.init();
     }
 }

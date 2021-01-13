@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.processors;
+package net.vplaygames.VPlayGames.core;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Response;
-import net.vplaygames.VPlayGames.data.Bot;
 
-public class CommonCommands
-{
-    public static boolean process(GuildMessageReceivedEvent e) {
-        new Response(e.getMessage());
-        String[] msg = Commands.split(e.getMessage().getContentRaw());
-        Bot.commands.get(msg[0]).run(e);
-        return true;
-    }
+public interface ICommand {
+    boolean run(GuildMessageReceivedEvent e);
+
+    void onCommandRun(GuildMessageReceivedEvent e);
+
+    void onRatelimit(GuildMessageReceivedEvent e);
+
+    void onInsufficientArgs(GuildMessageReceivedEvent e);
+
+    default void onHelpNeeded(GuildMessageReceivedEvent e) {}
 }

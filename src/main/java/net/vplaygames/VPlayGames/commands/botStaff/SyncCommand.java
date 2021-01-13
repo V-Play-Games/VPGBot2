@@ -13,21 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.commands.general;
+package net.vplaygames.VPlayGames.commands.botStaff;
 
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class InviteCommand extends Command {
-    public InviteCommand() {
-        super("invite");
+import java.util.List;
+
+public class SyncCommand extends Command {
+    public SyncCommand() {
+        super("sync");
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
-        String s = "Here's the link to the bot's support server,\n" + Bot.SUPPORT_SERVER_INVITE;
-        MiscUtil.send(e, s, true);
+        String[] msg = e.getMessage().getContentRaw().split(" ");
+        String s;
+        if(msg[1].equals("in"))
+        {
+            List<Message.Attachment> attachments = e.getMessage().getAttachments();
+            attachments.get(0).downloadToFile();
+            Bot.syncData(Bot.damageData);
+            s="Data Synced In!";
+        } else
+            s="Wrong syntax!\nSyntax for "+Bot.PREFIX+"sync command: ``"+Bot.PREFIX+"sync in``";
+        MiscUtil.send(e,s,true);
     }
 }

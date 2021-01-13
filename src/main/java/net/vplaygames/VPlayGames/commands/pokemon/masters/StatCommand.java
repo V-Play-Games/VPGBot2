@@ -15,42 +15,48 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class StatCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
+import static net.vplaygames.VPlayGames.data.Bot.DATA;
+
+public class StatCommand extends Command {
+    public StatCommand() {
+        super("stat");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
-        String to_send;
+        String toSend;
         int tstr;
         long aid=e.getAuthor().getIdLong();
-        if (Bot.current.DATA.containsKey(aid))
+        if (DATA.containsKey(aid))
         {
-            if(Bot.current.DATA.get(aid).getAppStatus()>1)
+            if(DATA.get(aid).getAppStatus()>1)
             {
                 if(msg.length>=4)
                 {
                     tstr= Strings.toInt(msg[3]);
-                    to_send=returnStatMsg(msg[2],msg[1],tstr,aid);
+                    toSend=returnStatMsg(msg[2],msg[1],tstr,aid);
                 } else
-                    to_send="Not enough inputs!";
+                    toSend="Not enough inputs!";
             } else
-                to_send="Please choose a Sync Pair first!";
+                toSend="Please choose a Sync Pair first!";
         } else
-            to_send="Start a Pokemon Masters Damage Calculation Application first!";
-        MiscUtil.send(e,to_send,true);
+            toSend= Bot.APP_NOT_STARTED;
+        MiscUtil.send(e,toSend,true);
     }
 
     public static String returnStatMsg(String m, String target, int s, long aid) {
-        Damage d = Bot.current.DATA.get(aid);
+        Damage d = DATA.get(aid);
         String stt_nm;
         int t;
-        switch (target) {
+        switch (target.toLowerCase()) {
             case "user":
             case "u":
                 t=0;
@@ -64,8 +70,8 @@ public class StatCommand
         }
         if(s<1)
             return "Invalid Stat! Stat cannot be in negative!";
-        switch (m) {
-            case "att":
+        switch (m.toLowerCase()) {
+            case "atk":
                 d.setStats(t,0,s);
                 stt_nm="attack";
                 break;
@@ -84,7 +90,7 @@ public class StatCommand
             default:
                 return "Cannot find sub-entry \""+m+"\" in entry \""+target+"\" in list \"stats\"";
         }
-        Bot.current.DATA.put(aid,d);
+        DATA.put(aid,d);
         return "Set the "+((t==1)?"target":"**"+MiscUtil.returnSP(d.getUid())+"**")+"'s "+stt_nm+" stat to "+s+"!";
     }
 }

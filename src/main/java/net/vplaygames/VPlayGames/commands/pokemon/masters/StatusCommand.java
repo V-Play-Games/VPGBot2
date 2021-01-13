@@ -15,22 +15,30 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class StatusCommand {
-    public static void process(GuildMessageReceivedEvent e) {
+import static net.vplaygames.VPlayGames.data.Bot.DATA;
+
+public class StatusCommand extends Command {
+    public StatusCommand() {
+        super("status");
+    }
+
+    @Override
+    public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         if (msg.length != 3) {
-            MiscUtil.send(e, Bot.current.INVALID_INPUTS, true);
+            MiscUtil.send(e, Bot.INVALID_INPUTS, true);
             return;
         }
         String toSend = "OK! So, the target was ";
         long aid = e.getAuthor().getIdLong();
         PROCESS:
-        if (Bot.current.DATA.containsKey(aid)) {
+        if (DATA.containsKey(aid)) {
             int t;
             switch (msg[1]) {
                 case "user":
@@ -45,7 +53,7 @@ public class StatusCommand {
                     toSend = "Cannot find \"" + msg[1] + "\" entry in list \"status\"";
                     break PROCESS;
             }
-            Damage d = Bot.current.DATA.get(aid);
+            Damage d = DATA.get(aid);
             switch (msg[2]) {
                 case "paralyzed":
                 case "paralyze":
@@ -106,8 +114,9 @@ public class StatusCommand {
                 default:
                     toSend = "That is a very weird status";
             }
+            DATA.put(aid,d);
         } else
-            toSend = "Create a PM Damage Calculator App first";
+            toSend = Bot.APP_NOT_STARTED;
         MiscUtil.send(e, toSend, true);
     }
 }

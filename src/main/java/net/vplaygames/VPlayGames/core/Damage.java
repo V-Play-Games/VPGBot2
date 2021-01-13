@@ -15,48 +15,51 @@
  */
 package net.vplaygames.VPlayGames.core;
 
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.data.GameData;
 import net.vplaygames.VPlayGames.util.Array;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Number;
 import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.StringJoiner;
 
-import static net.vplaygames.VPlayGames.data.Bot.BASE64;
-import static net.vplaygames.VPlayGames.data.Bot.current;
-import static net.vplaygames.VPlayGames.data.GameData.smoves;
+import static java.lang.Math.floor;
+import static java.lang.Math.round;
+import static net.vplaygames.VPlayGames.util.MiscUtil.returnSP;
 
 public class Damage {
-    private static int guCount = 0;
-    private int tid;
-    private int uid;
-    private int pid;
-    private int smd;
-    private int sml;
-    private int appStatus;
-    private int gauge;
-    private long userId;
-    private long userTime;
-    private String moveName;
-    private String damageCode;
-    private String userTag;
-    private int[] uc;
-    private int[] mSet;
-    private int[] mInfo;
-    private int[] mod;
-    private int[] wthr;
-    private int[] hpp;
-    private int[][] stats;
-    private int[][] buffs;
-    private int[][] status;
-    private int[][] sstatus;
-    private boolean enabled;
-    private boolean update;
-    private boolean verified;
-    private HashMap<String, SkillGroup> skills = new HashMap<>();
+    static int guCount = 0;
+    boolean enabled;
+    int tid;
+    int uid;
+    int pid;
+    int smd;
+    int sml;
+    int appStatus;
+    int gauge;
+    long damage;
+    long userId;
+    long userTime;
+    String moveName;
+    String damageCode;
+    String userTag;
+    String damageString;
+    int[] uc;
+    int[] mSet;
+    int[] mInfo;
+    int[] mod;
+    int[] wthr;
+    int[] terrain;
+    int[] hpp;
+    int[][] stats;
+    int[][] buffs;
+    int[][] status;
+    int[][] sstatus;
+    HashMap<String, SkillGroup> skills;
 
     public Damage(Damage d) {
         userId = d.userId;
@@ -75,16 +78,17 @@ public class Damage {
         mInfo = d.mInfo;
         mod = d.mod;
         wthr = d.wthr;
+        terrain = d.terrain;
         stats = d.stats;
         buffs = d.buffs;
         hpp = d.hpp;
         status = d.status;
         sstatus = d.sstatus;
         skills = new HashMap<>(d.skills);
-        verified = d.verified;
         enabled = d.enabled;
-        update = d.update;
         appStatus = d.appStatus;
+        damage = d.damage;
+        damageString = d.damageString;
     }
 
     public Damage(GuildMessageReceivedEvent e) {
@@ -100,57 +104,59 @@ public class Damage {
     }
 
     public Damage(long userid, String uTag, String code) {
-        this(userid, uTag, code, true);
+        this(userid, uTag, code, System.currentTimeMillis());
     }
 
-    public Damage(long userid, String uTag, String code, boolean update) {
-        this.userId = userid;
-        this.userTime = System.currentTimeMillis();
-        this.tid = 0;
-        this.uid = 0;
-        this.pid = 0;
-        this.smd = 0;
-        this.sml = 1;
-        this.verified = false;
-        this.moveName = "";
-        this.appStatus = 0;
-        this.gauge = 0;
-        this.hpp = new int[]{0, 0};
-        this.mInfo = new int[]{0, 0, 0, 0};
-        this.mod = new int[]{0, 0, 0, 0};
-        this.wthr = new int[]{0, 0, 0, 0};
-        this.status = new int[][]{{0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}};
-        this.sstatus = new int[][]{{0, 0, 0}, {0, 0, 0}};
-        this.stats = new int[][]{{0, 0, 0, 0}, {0, 0, 0, 0}};
-        this.buffs = new int[][]{{0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}};
-        this.mod[2] = 1;
-        this.enabled = false;
-        this.userTag = uTag;
-        this.damageCode = code;
-        this.update = update;
-        update();
+    public Damage(long uId, String uTag, String code, long uTime) {
+        userId = uId;
+        userTime = uTime;
+        tid = 0;
+        uid = 0;
+        pid = 0;
+        smd = 0;
+        sml = 1;
+        moveName = "";
+        appStatus = 0;
+        gauge = 0;
+        hpp = new int[]{0, 0};
+        mInfo = new int[]{0, 0, 0, 0};
+        mod = new int[]{0, 0, 0, 0};
+        wthr = new int[]{0, 0, 0, 0};
+        terrain = new int[]{0, 0, 0, 0};
+        status = new int[][]{{0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}};
+        sstatus = new int[][]{{0, 0, 0}, {0, 0, 0}};
+        stats = new int[][]{{0, 0, 0, 0}, {0, 0, 0, 0}};
+        buffs = new int[][]{{0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}};
+        mod[2] = 1;
+        userTag = uTag;
+        damageCode = code;
+        enabled = false;
+        skills = new HashMap<>();
+        damage = 0;
+        damageString = "0";
+        Bot.DATA.put(userId,this);
     }
 
     // Process "v!code" Command
     public static void Code(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         String toSend;
-        HashMap<Long, Damage> data = current.DATA;
+        HashMap<Long, Damage> data = Bot.DATA;
         if (msg.length != 2) {
-            MiscUtil.send(e, current.INVALID_INPUTS, true);
+            MiscUtil.send(e, Bot.INVALID_INPUTS, true);
             return;
         }
         long aid = e.getAuthor().getIdLong();
         if (msg[1].equals("get")) {
             if (data.containsKey(aid)) {
                 String code = data.get(aid).getCode();
-                toSend = e.getAuthor().getAsMention() + ", you requested Damage Code is " + code;
+                toSend = e.getAuthor().getAsMention() + ", your requested Damage Code is " + code;
                 data.get(aid).enable();
             } else {
                 toSend = "I cannot find a Damage Calculator App created by you, " + e.getAuthor().getAsMention();
             }
         } else {
-            HashMap<String, Damage> dc = current.DAMAGE_CODES;
+            HashMap<String, Damage> dc = Bot.DAMAGE_CODES;
             String code = msg[1];
             if (dc.containsKey(code)) {
                 Damage d = dc.get(code);
@@ -174,97 +180,70 @@ public class Damage {
     public static String generate() {
         StringBuilder tor = new StringBuilder();
         for (int i = 0; i < 6; i++)
-            tor.append(BASE64.charAt((int) (Math.random() * BASE64.length())));
+            tor.append(Bot.BASE64.charAt((int) (Math.random() * Bot.BASE64.length())));
         return tor.toString();
     }
 
     public static String generateValid() {
         String code = generate();
-        while (current.DAMAGE_CODES.containsKey(code)) code = generate();
+        while (Bot.DAMAGE_CODES.containsKey(code)) code = generate();
         return code;
-    }
-
-    // Updater
-    public void update() {
-        if (this.update)
-            current.DAMAGE_CODES.put(damageCode, this);
     }
 
     // Setters
     public Damage enable() {
         enabled = true;
-        update();
-        return this;
-    }
-
-    public Damage enableUpdates() {
-        update = true;
-        return current.DAMAGE_CODES.put(damageCode, this);
-    }
-
-    public Damage verify() {
-        verified = true;
-        update();
+        Bot.DAMAGE_CODES.put(damageCode,this);
         return this;
     }
 
     public Damage setTid(int set) {
         tid = set;
-        update();
         return this;
     }
 
     public Damage setUid(int set) {
         uid = set;
-        update();
         return this;
     }
 
     public Damage setPid(int set) {
         pid = set;
-        update();
         return this;
     }
 
     public Damage setSmd(int set) {
         smd = set;
-        update();
         return this;
     }
 
     public Damage setSml(int set) {
         sml = set;
-        update();
         return this;
     }
 
     public Damage updateAppStatus() {
         appStatus++;
-        update();
         return this;
     }
 
     public Damage setGauge(int set) {
         gauge = set;
-        update();
         return this;
     }
 
     public Damage setMoveName(String set) {
         moveName = set;
-        update();
         return this;
     }
 
     public Damage setUc(int[] set) {
         uc = set;
-        update();
         return this;
     }
 
     public Damage setMSet(int[] set) {
         mSet = set;
-        update();
         return this;
     }
 
@@ -277,93 +256,50 @@ public class Damage {
             }
             mInfo[1] = 0;
         }
-        update();
         return this;
     }
 
     public Damage setMod(int i, int set) {
         mod[i] = set;
-        update();
-        return this;
-    }
-
-    public Damage setMod(int[] set) {
-        mod = set;
-        update();
         return this;
     }
 
     public Damage setWthr(int set) {
         Arrays.fill(wthr, 0);
         wthr[set] = 1;
-        update();
         return this;
     }
 
-    public Damage setWthr(int[] set) {
-        wthr = set;
-        update();
+    public Damage setTerrain(int set) {
+        Arrays.fill(terrain, 0);
+        terrain[set] = 1;
         return this;
     }
 
     public Damage setStatus(int t, int set) {
         Arrays.fill(status[t], 0);
         status[t][set] = 1;
-        update();
-        return this;
-    }
-
-    public Damage setStatus(int[][] set) {
-        status = set;
-        update();
         return this;
     }
 
     public Damage setSStatus(int t, int set) {
         sstatus[t][set] = (sstatus[t][set] == 1) ? 0 : 1;
-        update();
-        return this;
-    }
-
-    public Damage setSStatus(int[][] set) {
-        sstatus = set;
-        update();
         return this;
     }
 
     public Damage setStats(int target, int sttcd, int stat) {
         stats[target][sttcd] = stat;
-        update();
-        return this;
-    }
-
-    public Damage setStats(int[][] set) {
-        stats = set;
-        update();
         return this;
     }
 
     public Damage setBuffs(int target, int bffcd, int buff) {
         buffs[target][bffcd] = buff;
-        update();
-        return this;
-    }
-
-    public Damage setBuffs(int[][] set) {
-        buffs = set;
-        update();
         return this;
     }
 
     public Damage setHPP(int target, int set) {
         hpp[target] = set;
-        update();
-        return this;
-    }
 
-    public Damage setHPP(int[] set) {
-        hpp = set;
-        update();
         return this;
     }
 
@@ -377,23 +313,12 @@ public class Damage {
                 skills.put(skill, new SkillGroup(skill + " " + intensity, true));
         } else
             skills.put(Strings.toProperCase(skill), new SkillGroup(skill, false));
-        update();
-        return this;
-    }
-
-    public Damage setSkills(HashMap<String, SkillGroup> set) {
-        skills = set;
-        update();
         return this;
     }
 
     // Getters
     public boolean isEnabled() {
         return enabled;
-    }
-
-    public boolean isVerified() {
-        return verified;
     }
 
     public long getUserId() {
@@ -444,14 +369,6 @@ public class Damage {
         return damageCode;
     }
 
-    public String getWeatherString() {
-        return (wthr[0] == 1) ? "the weather was sunny" : (wthr[1] == 1) ? "it was raining" : (wthr[2] == 1) ? "there was a sandstorm" : (wthr[3] == 1) ? "it was hailing" : "the weather was normal";
-    }
-
-    public String getTargetString() {
-        return (mod[2] == 1) ? "the target was the only opponent affected by the move" : "there " + ((mod[2] == 2) ? "was 1 more opponent" : "were 2 more opponents") + " other than the target affected by the move";
-    }
-
     public int[] getMInfo() {
         return mInfo;
     }
@@ -470,6 +387,10 @@ public class Damage {
 
     public int[] getWthr() {
         return wthr;
+    }
+
+    public int[] getTerrain() {
+        return terrain;
     }
 
     public int[] getHPP() {
@@ -492,9 +413,53 @@ public class Damage {
         return buffs;
     }
 
-    // Getters related to Skills
     public HashMap<String, SkillGroup> getSkills() {
         return skills;
+    }
+
+    public void refresh() {
+        int mCat = mInfo[2];
+        int mType = mInfo[3];
+        int off = stats[0][mCat];
+        int def = stats[1][mCat+2];
+        int bp = mInfo[0];
+        int b_o = Math.abs(buffs[0][mCat]);
+        double buff_off = (b_o==0)?1:(b_o==1)?1.25:(10+b_o+2)/10.0;
+        buff_off = (buffs[0][mCat]<0)?1.0/buff_off:buff_off;
+        int b_d = Math.abs(buffs[1][mCat+2]);
+        double buff_def = (b_d==0)?1:(b_d==1)?1.25:(10+b_d+2)/10.0;
+        buff_def = (buffs[1][mCat+2]<0)?1.0/buff_def:(mod[0]==1)?1:buff_def;
+        double smb = 1+(sml-1)/20.0;
+        double roll = round(Math.random()*10+90)/100.0;
+        double ch = (mod[0]==1)?1.5:1;
+        double se = (mod[1]==1)?2:1;
+        double sprd = (mod[2]==1)?1:(mod[2]==2)?2.0/3.0:0.5;
+        double wthr_boost = (wthr[0]==1&&mType==7)||(wthr[1]==1&&mType==18)?1.5:1;
+        double terrain_boost = (terrain[0]==1&&mType==4)||(terrain[1]==1&&mType==15)||(terrain[2]==1&&mType==10)||(terrain[3]==1&&mType==5)?1.5:1;
+        double mod = ch*se*sprd*wthr_boost*terrain_boost;
+        damage = round(floor(floor(bp*smb*(1+getPassiveMultiplier()))*(off*buff_off)/(def*buff_def)*mod*roll));
+        damageString="Formula:- (int: (int: "+bp+"x"+smb+"x(1"+getMultiplierString()+"))x(("+off+"x"+buff_off+")/("+def+"x"+buff_def+"))x("+ch+"x"+se+"x"+wthr_boost+"x"+terrain_boost+"x"+sprd+")x"+roll+")"+
+                "\n\""+returnSP(uid)+"\" with "+
+                off+" "+((mInfo[2]==1)?"Special":"Physical")+" Attack stat, while using "+
+                moveName+" at sync move level "+sml+
+                ", can deal **__"+damage+"__** damage to an opponent with "+
+                def+" "+((mInfo[2]==1)?"Special":"Physical")+" Defense stat provided that "+
+                getTargetString()+", "+getWeatherString()+", "+getTerrainString()+
+                ", the hit was "+((ch==1)?"not ":"")+"a critical hit and was "+
+                ((se==1)?"":"super ")+"effective against the opponent.\n\n"+getPassiveString();
+    }
+
+    // Other Getters
+    public String getWeatherString() {
+        return (wthr[0] == 1) ? "the weather was sunny" : (wthr[1] == 1) ? "it was raining" : (wthr[2] == 1) ? "there was a sandstorm" : (wthr[3] == 1) ? "it was hailing" : "the weather was normal";
+    }
+
+    public String getTerrainString() {
+        return ((terrain[0] == 1) ? "the electric" : (terrain[1] == 1) ? "the psychic" : (terrain[2] == 1) ? "the grassy" : (terrain[3] == 1) ? "the misty" : "no") + " terrain was active";
+    }
+
+    public String getTargetString() {
+        return (mod[2] == 1) ? "the target was the only opponent affected by the move" : "there " + ((mod[2] == 2) ? "was 1 more opponent" : "were 2 more opponents") + " other than the target affected by the move";
     }
 
     public String getSkillGroupString() {
@@ -511,17 +476,17 @@ public class Damage {
         int j = 1;
         for (SkillGroup sg : skills.values()) {
             if (sg.isActive(this)) {
-                tor.add((j++) + ". " + sg.getPassiveString() + "\n");
+                tor.add((j++) + ". " + sg.getPassiveString());
             }
         }
         return tor.toString();
     }
 
     public String getMultiplierString() {
-        String tor = "";
+        StringJoiner tor = new StringJoiner("");
         for (SkillGroup sg : skills.values())
-            tor += (sg.isActive(this)) ? sg.getMultiplierString() : "";
-        return tor;
+            tor.add((sg.isActive(this)) ? sg.getMultiplierString() : "");
+        return tor.toString();
     }
 
     public double getPassiveMultiplier() {
@@ -530,6 +495,16 @@ public class Damage {
             if (skills.get(s).isActive(this))
                 tor += skills.get(s).getMultiplier();
         return tor;
+    }
+
+    public long getDamage() {
+        refresh();
+        return damage;
+    }
+
+    public String getDamageString() {
+        refresh();
+        return damageString;
     }
 
     // Methods overridden from java.lang.Object
@@ -545,7 +520,6 @@ public class Damage {
                 pid == d.pid &&
                 smd == d.smd &&
                 sml == d.sml &&
-                verified == d.verified &&
                 appStatus == d.appStatus &&
                 gauge == d.gauge &&
                 moveName.equals(d.moveName) &&
@@ -562,30 +536,33 @@ public class Damage {
 
     @Override
     public String toString() {
-        return "damageCode = " + damageCode +
-                "\nenabled = " + enabled +
+        return "damage = " + damage +
                 "\ntid = " + tid +
                 "\nuid = " + uid +
                 "\npid = " + pid +
                 "\nsmd = " + smd +
                 "\nsml = " + sml +
-                "\nverified = " + verified +
                 "\nappStatus = " + appStatus +
                 "\ngauge = " + gauge +
-                "\nuser_id = " + userId +
-                "\nuser_time = " + userTime +
-                "\nmvnam = " + moveName +
+                "\nuserId = " + userId +
+                "\nuserTime = " + userTime +
+                "\nmoveName = " + moveName +
+                "\ndamageCode = " + damageCode +
+                "\nuserTag = " + userTag +
+                "\ndamageString = " + damageString +
                 "\nuc = " + Arrays.toString(uc) +
                 "\nmSet = " + Arrays.toString(mSet) +
                 "\nmInfo = " + Arrays.toString(mInfo) +
                 "\nmod = " + Arrays.toString(mod) +
-                "\nhpp = " + Arrays.toString(hpp) +
                 "\nwthr = " + Arrays.toString(wthr) +
+                "\nterrain = " + Arrays.toString(terrain) +
+                "\nhpp = " + Arrays.toString(hpp) +
                 "\nstats = " + Arrays.deepToString(stats) +
                 "\nbuffs = " + Arrays.deepToString(buffs) +
                 "\nstatus = " + Arrays.deepToString(status) +
                 "\nsstatus = " + Arrays.deepToString(sstatus) +
-                "\nskills:-\n" + getSkillGroupString();
+                "\nenabled = " + enabled +
+                "\nskills =\n" + getSkillGroupString();
     }
 
     @Override
@@ -602,104 +579,83 @@ public class Damage {
         //String moveName,damageCode,userTag;
         String Strings = (moveName.endsWith("e)") ? "s" : moveName) + ";" + damageCode + ";" + userTag;
         //int[] uc,mSet,mInfo,mod,wthr,hpp;
-        String SingleArrays = Array.manyToString(uc, mSet, mInfo, mod, wthr, hpp);
+        String SingleArrays = Array.manyToString(uc, mSet, mInfo, mod, wthr, terrain, hpp);
         //int[][] stats,buffs,status,sstatus;
         String DoubleArrays = Array.manyToString(stats, buffs, status, sstatus);
         //boolean enabled,update,verified;
-        String booleans = "" + (enabled ? 1 : 0) + (update ? 1 : 0) + (verified ? 1 : 0);
+        String booleans = "" + (enabled ? 1 : 0);
         StringBuilder skill = new StringBuilder();
         for (String str : skills.keySet().toArray(new String[0]))
             skill.append(skills.get(str).translateToString()).append("-");
         String Skills = "[" + skill.toString().substring(0, skill.length() != 0 ? skill.length() - 1 : 0) + "]";
-        return ints + ";" + longs + ";" + Strings + ";" + SingleArrays + ";" + DoubleArrays + ";" + booleans + ";" + Skills;
+        return ints + ";" + longs + ";" + Strings + ";" + SingleArrays + DoubleArrays + booleans + ";" + Skills;
     }
 
     public static Damage parseFromString(String damage) {
-        return new Parser(damage).acceptAll().toDamage();
-    }
-
-    public static class Parser {
-        int tid, uid, pid, smd, sml, appStatus, gauge;
-        long userId, userTime;
-        String mvnam, damageCode, userTag;
-        int[] uc, mSet, mInfo, mod, wthr, hpp;
-        int[][] stats, buffs, status, sstatus;
-        boolean enabled, update, vrfy;
+        String[] TDATA = damage.split(";");
+        /* 84;10084140;84140;1;5;4;0;
+         * 747328310828204143;1608818463475;
+         * Heat Wave;SAMPLE;V Play Games#5877;
+         * [10084139,10084140];[1065,1057,1015];[109,1,1,7];[1,1,1,0];[1,0,0,0];[0,0,0,0];[0,0];
+         * [[0,420,0,57]-[0,0,0,0]];[[0,6,0,0,0,0,0]-[0,0,0,0,0,0,0]];[[0,0,0,0,0,0,0]-[0,0,0,0,0,0,0]];[[0,0,0]-[0,0,0]];
+         * 1;
+         * [];
+         */
+        int tid = Strings.toInt(TDATA[0]);
+        int uid = Strings.toInt(TDATA[1]);
+        int pid = Strings.toInt(TDATA[2]);
+        int smd = Strings.toInt(TDATA[3]);
+        int sml = Strings.toInt(TDATA[4]);
+        int appStatus = Strings.toInt(TDATA[5]);
+        int gauge = Strings.toInt(TDATA[6]);
+        long userId = Long.parseLong(TDATA[7]);
+        long userTime = Long.parseLong(TDATA[8]);
+        String moveName = TDATA[9].equals("s") ? GameData.smoves[pid%1000-1]+" (Sync Move)" : TDATA[9];
+        String damageCode = TDATA[10];
+        String userTag = TDATA[11];
+        int[] uc = Strings.toSingleIntArray(TDATA[12]);
+        int[] mSet = Strings.toSingleIntArray(TDATA[13]);
+        int[] mInfo = Strings.toSingleIntArray(TDATA[14]);
+        int[] mod = Strings.toSingleIntArray(TDATA[15]);
+        int[] wthr = Strings.toSingleIntArray(TDATA[16]);
+        int[] terrain = Strings.toSingleIntArray(TDATA[17]);
+        int[] hpp = Strings.toSingleIntArray(TDATA[18]);
+        int[][] stats = Strings.toDoubleIntArray(TDATA[19]);
+        int[][] buffs = Strings.toDoubleIntArray(TDATA[20]);
+        int[][] status = Strings.toDoubleIntArray(TDATA[21]);
+        int[][] sstatus = Strings.toDoubleIntArray(TDATA[22]);
+        boolean enabled = TDATA[23].charAt(0) == '1';
         HashMap<String, SkillGroup> skills = new HashMap<>();
-        final String[] TDATA;
-
-        public Parser(String translation) {
-            TDATA = translation.split(";");
-            System.out.println(Array.toString("\n",TDATA,"Error"));
-        }
-
-        public Parser acceptAll() {
-            /* 105;105168;105168;0;1;4;0;
-             * 660739620807507978;1603527220845;
-             * Wild Charge;FDwoMs;Natsu 11#0769;
-             * [105168];[105168];[150,164];[125,0,0,4];[0,0,1,0];[0,0,0,0];[0,0];
-             * [[0,0,0,0]-[0,0,0,0]];[[0,0,0,0]-[0,0,0,0]];[[0,0,0,0,0,0,0]-[0,0,0,0,0,0,0]];[[0,0,0,0,0,0,0]-[0,0,0,0,0,0,0]];[[0,0,0]-[0,0,0]];
-             * 010;
-             */
-            tid = Strings.toInt(TDATA[0]);
-            uid = Strings.toInt(TDATA[1]);
-            pid = Strings.toInt(TDATA[2]);
-            smd = Strings.toInt(TDATA[3]);
-            sml = Strings.toInt(TDATA[4]);
-            appStatus = Strings.toInt(TDATA[5]);
-            gauge = Strings.toInt(TDATA[6]);
-            userId = Long.parseLong(TDATA[7]);
-            userTime = Long.parseLong(TDATA[8]);
-            mvnam = TDATA[9].equals("s") ? smoves[pid] : TDATA[9];
-            damageCode = TDATA[10];
-            userTag = TDATA[11];
-            uc = Strings.toSingleIntArray(TDATA[12]);
-            mSet = Strings.toSingleIntArray(TDATA[13]);
-            mInfo = Strings.toSingleIntArray(TDATA[14]);
-            mod = Strings.toSingleIntArray(TDATA[15]);
-            wthr = Strings.toSingleIntArray(TDATA[16]);
-            hpp = Strings.toSingleIntArray(TDATA[17]);
-            stats = Strings.toDoubleIntArray(TDATA[18]);
-            buffs = Strings.toDoubleIntArray(TDATA[19]);
-            status = Strings.toDoubleIntArray(TDATA[20]);
-            sstatus = Strings.toDoubleIntArray(TDATA[21]);
-            enabled = TDATA[22].charAt(0) == '1';
-            update = TDATA[22].charAt(1) == '1';
-            vrfy = TDATA[22].charAt(2) == '1';
-            String[] s = TDATA[23].substring(1, TDATA[23].length() - 1).split("-");
+        if (!TDATA[24].equals("[]")) {
+            String[] s = TDATA[24].substring(1, TDATA[24].length() - 1).split("-");
             for (String skill : s) {
                 SkillGroup sg = SkillGroup.parse(skill);
                 if (sg == null) break;
                 skills.put(sg.getName(), sg);
             }
-            return this;
         }
-
-        public Damage toDamage() {
-            Damage d = new Damage(userId, userTag, damageCode, update)
-                    .setTid(tid)
-                    .setUid(uid)
-                    .setPid(pid)
-                    .setSmd(smd)
-                    .setSml(sml)
-                    .setGauge(gauge)
-                    .setMoveName(mvnam)
-                    .setUc(uc)
-                    .setMSet(mSet)
-                    .setMInfo(mInfo)
-                    .setMod(mod)
-                    .setWthr(wthr)
-                    .setHPP(hpp)
-                    .setStats(stats)
-                    .setBuffs(buffs)
-                    .setStatus(status)
-                    .setSStatus(sstatus)
-                    .setSkills(skills);
-            if (enabled) d.enable();
-            if (vrfy) d.verify();
-            if (update) d.enableUpdates();
-            for (int i = 0; i < appStatus; i++) d.updateAppStatus();
-            return d;
-        }
+        Damage d = new Damage(userId,userTag,damageCode,userTime);
+        d.tid = tid;
+        d.uid = uid;
+        d.pid = pid;
+        d.smd = smd;
+        d.sml = sml;
+        d.gauge = gauge;
+        d.moveName = moveName;
+        d.uc = uc;
+        d.mSet = mSet;
+        d.mInfo = mInfo;
+        d.mod = mod;
+        d.wthr = wthr;
+        d.terrain = terrain;
+        d.stats = stats;
+        d.buffs = buffs;
+        d.hpp = hpp;
+        d.status = status;
+        d.sstatus = sstatus;
+        d.skills = skills;
+        d.enabled = enabled;
+        d.appStatus = appStatus;
+        return d;
     }
 }

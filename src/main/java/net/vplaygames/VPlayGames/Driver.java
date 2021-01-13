@@ -15,24 +15,28 @@
  */
 package net.vplaygames.VPlayGames;
 
-import net.vplaygames.VPlayGames.BotStaffCommands.LogCommand;
-import net.vplaygames.VPlayGames.events.BotPingedEvent;
-import net.vplaygames.VPlayGames.events.HelloEvent;
-import net.vplaygames.VPlayGames.db.CommandManager;
+import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.PokeMasDB.Caches.PokemasDBCache;
+import net.vplaygames.VPlayGames.processors.EventManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
 
-import static net.vplaygames.VPlayGames.db.botresources.*;
-
-public class Bot
+public class Driver
 {
     public static void main(String[] args) throws Exception
     {
-        JDA jda = JDABuilder.createDefault(TOKEN).setActivity(Activity.playing("v!pm start")).build();
-        setBooted();
-        initStaff();
-        jda.awaitReady();
-        jda.addEventListener(new HelloEvent(),new BotPingedEvent(),new CommandManager(),new LogCommand());
+        JDA jda = JDABuilder.createDefault(Bot.TOKEN)
+                .addEventListeners(EventManager.getInstance())
+                .build()
+                .awaitReady();
+        new Bot(jda);
+        jda.getPresence().setActivity(Activity.watching("pokemasdb.com's data & downloading it."));
+        Thread.sleep(1000);
+        PokemasDBCache.getInstance();
+        long memberCount=0;
+        for(Guild g:jda.getGuilds())memberCount+=g.getMemberCount();
+        jda.getPresence().setActivity(Activity.playing("Damage Calculation with "+memberCount+" people in "+jda.getGuilds().size()+" servers"));
     }
 }

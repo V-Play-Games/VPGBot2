@@ -1,1 +1,1 @@
-worker: java output.jar
+worker: java src/main/java/net/vplaygames/VPlayGames/Driver.java

@@ -1,1 +1,1 @@
-worker: java Driver.main(new String[1]{""});
+worker: java -jar target/VPlayGames-1.5.0.jar

@@ -1,1 +1,1 @@
-worker: java Driver.main(new String[1]{""})
+worker: java Driver.main(new String[1]{""});

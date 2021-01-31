@@ -1,1 +1,1 @@
-worker: java net/vplaygames/VPlayGames/Driver.java
+worker: java net/vplaygames/VPlayGames/Driver

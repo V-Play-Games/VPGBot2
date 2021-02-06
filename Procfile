@@ -1,1 +1,1 @@
-worker: java -jar target/VPlayGames-1.5.0.jar
+worker: sh target/bin/VPlayGamesBotRunner

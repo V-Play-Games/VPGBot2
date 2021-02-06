@@ -16,32 +16,25 @@
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
 
-public class HPPCommand extends Command {
+public class HPPCommand extends DamageAppCommand {
     public HPPCommand() {
-        super("hpp");
+        super("hpp", 2);
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
-        if (msg.length != 3) {
-            MiscUtil.send(e, Bot.INVALID_INPUTS, true);
-            return;
-        }
         String toSend;
-        long aid = e.getAuthor().getIdLong();
-        int t;
+        Damage d = DATA.get(e.getAuthor().getIdLong());
         legalityCheck:
-        if (DATA.containsKey(aid)) {
-            Damage d = DATA.get(aid);
+        {
+            int t;
             switch (msg[1].toLowerCase()) {
                 case "user":
                 case "u":
@@ -62,9 +55,7 @@ public class HPPCommand extends Command {
             }
             d.setHPP(t, hpp);
             toSend = "OK! So, the " + (t == 1 ? "target" : "user") + " was at " + hpp + "% HP.";
-            DATA.put(aid, d);
-        } else
-            toSend = Bot.APP_NOT_STARTED;
+        }
         MiscUtil.send(e, toSend, true);
     }
 }

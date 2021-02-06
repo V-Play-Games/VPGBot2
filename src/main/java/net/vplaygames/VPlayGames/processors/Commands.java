@@ -15,44 +15,49 @@
  */
 package net.vplaygames.VPlayGames.processors;
 
-import net.vplaygames.VPlayGames.util.Array;
-import net.vplaygames.VPlayGames.data.Bot;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-
-import java.util.ArrayList;
-import java.util.Arrays;
+import net.vplaygames.VPlayGames.core.Response;
+import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.util.Strings;
 
 public class Commands {
     public static boolean process(GuildMessageReceivedEvent e) {
-        String MSG = e.getMessage().getContentRaw();
-        boolean resp = false;
-        if (MSG.startsWith(Bot.PREFIX) && MSG.length() > Bot.PREFIX.length()) {
-            String[] msg = split(MSG);
-            if (Array.contains(msg[0], Bot.STAFF_COMMANDS))
-                resp = BotStaffCommands.process(e);
-            if (Array.contains(msg[0], Bot.COMMANDS))
-                resp = resp || CommonCommands.process(e);
+        Message message = e.getMessage();
+        String content = message.getContentRaw();
+        String command = split(content.toLowerCase())[0];
+        if (Bot.commands.containsKey(command)) {
+            new Response(message);
+            return Bot.commands.get(command).run(e);
+        } else if (Strings.equalsAnyIgnoreCase(Strings.reduceToAlphanumeric(content), "Hi", "Hey", "Hello", "Bye")) {
+            new Response(message);
+            MiscUtil.send(e, Strings.toProperCase(content) + ", " + e.getAuthor().getAsMention() + "!", true);
+            return true;
+        } else if (message.getMentionedUsers().contains(e.getJDA().getSelfUser())) {
+            BotPingedEvent(e);
+            return true;
         }
-        return resp;
+        return false;
     }
 
     public static String[] split(String s) {
-        String[] tor;
-        if (s.contains("\n")) {
-            ArrayList<String> temp = new ArrayList<>();
-            for (String s1 : s.split("\n")) {
-                if (s1.contains(" ")) {
-                    temp.addAll(Arrays.asList(s1.split(" ")));
-                } else {
-                    temp.add(s1);
-                }
-            }
-            tor = temp.toArray(new String[0]);
-            if (tor[0].startsWith(Bot.PREFIX))
-                tor[0] = tor[0].substring(Bot.PREFIX.length());
-        } else {
-            tor = s.substring(Bot.PREFIX.length()).split(" ");
-        }
-        return tor;
+        return s.replaceAll("\n", " ").substring(Bot.PREFIX.length()).split(" ");
+    }
+
+    public static void BotPingedEvent(GuildMessageReceivedEvent e) {
+        String devMention = e.getJDA().retrieveUserById(Bot.BOT_OWNER).complete().getAsMention();
+        EmbedBuilder emb = new EmbedBuilder();
+        emb.setAuthor("V Play Games Bot Info");
+        emb.setDescription("A Pokemon-related bot created by " + devMention);
+        emb.setThumbnail(e.getJDA().getSelfUser().getAvatarUrl());
+        emb.setColor(0x1abc9c);
+        emb.addField("Developer", devMention, true);
+        emb.addField("Version", Bot.VERSION, true);
+        emb.addField("Server Count", Integer.toString(e.getJDA().getGuilds().size()), false);
+        emb.setFooter("Sent " + MiscUtil.dateTimeNow());
+        e.getChannel().sendMessage("Prefix: " + Bot.PREFIX).embed(emb.build()).queue();
+        new Response(e.getMessage()).responded("Bot-Pinged-Message");
     }
 }

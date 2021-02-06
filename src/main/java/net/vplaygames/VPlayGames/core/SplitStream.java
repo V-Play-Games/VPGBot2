@@ -37,8 +37,8 @@ public class SplitStream extends PrintStream {
 
     @Override
     public void close() {
+        super.close();
         p1.close();
-        p2.close();
     }
 
     @Override
@@ -61,7 +61,7 @@ public class SplitStream extends PrintStream {
 
     @Override
     public void println(String x) {
-        p1.println(process(x)+"\n");
+        p1.println(process(x));
         p2.println(x);
     }
 

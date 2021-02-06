@@ -16,14 +16,13 @@
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
+import static net.vplaygames.VPlayGames.core.Damage.Status.*;
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
 
-public class CDCommand extends Command {
+public class CDCommand extends DamageAppCommand {
     public CDCommand() {
         super("cd");
     }
@@ -31,23 +30,19 @@ public class CDCommand extends Command {
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
         String toSend;
-        long aid = e.getAuthor().getIdLong();
-        if (DATA.containsKey(aid)) {
-            Damage d = DATA.get(aid);
-            if (d.getAppStatus() < 1)
-                toSend = "Choose a Trainer first!";
-            else if (d.getAppStatus() < 2)
-                toSend = "Choose a Sync Pair first!!";
-            else if (d.getAppStatus() < 3)
-                toSend = "Move is Missing!";
-            else if (d.getStats()[0][d.getMInfo()[2]] == 0)
-                toSend = "``" + MiscUtil.returnSP(d.getUid()) + "``'s " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") + " Attack stat is Missing!";
-            else if (d.getStats()[1][d.getMInfo()[2] + 2] == 0)
-                toSend = "The target's " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") + " Defense stat is Missing!";
-            else
-                toSend = d.getDamageString();
-        } else
-            toSend = Bot.APP_NOT_STARTED;
+        Damage d = DATA.get(e.getAuthor().getIdLong());
+        if (d.getAppStatus() == STARTED.ordinal())
+            toSend = "Choose a Trainer first!";
+        else if (d.getAppStatus() == TRAINER_CHOSEN.ordinal())
+            toSend = "Choose a Sync Pair first!!";
+        else if (d.getAppStatus() == UNIT_CHOSEN.ordinal())
+            toSend = "Move is Missing!";
+        else if (d.getStats()[0][d.getMInfo()[2]] == 0)
+            toSend = MiscUtil.returnSP(d.getUid()) + "'s " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") + " Attack stat is Missing!";
+        else if (d.getStats()[1][d.getMInfo()[2] + 2] == 0)
+            toSend = "The target's " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") + " Defense stat is Missing!";
+        else
+            toSend = d.getDamageString();
         MiscUtil.send(e, toSend, true);
     }
 }

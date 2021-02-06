@@ -16,57 +16,44 @@
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
 
-public class WeatherCommand extends Command {
+public class WeatherCommand extends DamageAppCommand {
     public WeatherCommand() {
-        super("weather");
+        super("weather", 1);
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
-        if (msg.length!=2)
-        {
-            MiscUtil.send(e, Bot.INVALID_INPUTS,true);
-            return;
-        }
         String toSend;
-        long aid=e.getAuthor().getIdLong();
-        if(DATA.containsKey(aid))
-        {
-            Damage d = DATA.get(aid);
-            switch (msg[1]) {
-                case "sunny":
-                case "sun":
-                    d.setWthr(0);
-                    toSend = "OK! So, the weather was sunny";
-                    break;
-                case "rainy":
-                case "rain":
-                    d.setWthr(1);
-                    toSend = "OK! So, it was raining";
-                    break;
-                case "sandstorm":
-                    d.setWthr(2);
-                    toSend = "OK! So, a sandstorm was raging";
-                    break;
-                case "hail":
-                case "hailstorm":
-                    d.setWthr(3);
-                    toSend = "OK! So, it was hailing";
-                    break;
-                default:
-                    toSend = "That is a very weird weather!";
-            }
-            DATA.put(aid,d);
-        } else
-            toSend=Bot.APP_NOT_STARTED;
-        MiscUtil.send(e,toSend,true);
+        Damage d = DATA.get(e.getAuthor().getIdLong());
+        switch (msg[1]) {
+            case "sunny":
+            case "sun":
+                d.setWthr(0);
+                toSend = "OK! So, the weather was sunny";
+                break;
+            case "rainy":
+            case "rain":
+                d.setWthr(1);
+                toSend = "OK! So, it was raining";
+                break;
+            case "sandstorm":
+                d.setWthr(2);
+                toSend = "OK! So, a sandstorm was raging";
+                break;
+            case "hail":
+            case "hailstorm":
+                d.setWthr(3);
+                toSend = "OK! So, it was hailing";
+                break;
+            default:
+                toSend = "That is a very weird weather!";
+        }
+        MiscUtil.send(e, toSend, true);
     }
 }

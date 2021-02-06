@@ -29,8 +29,4 @@ public class Number
     public static boolean isBetween(int n, int lowerValue,int upperValue) {
         return n>=lowerValue&&n<=upperValue;
     }
-
-    public static boolean isBetween(String n, int lowerValue,int upperValue) {
-        return isBetween(Strings.toInt(n),lowerValue,upperValue);
-    }
 }

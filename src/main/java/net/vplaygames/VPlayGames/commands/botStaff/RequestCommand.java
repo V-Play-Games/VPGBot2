@@ -16,14 +16,13 @@
 package net.vplaygames.VPlayGames.commands.botStaff;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Response;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
 import static net.vplaygames.VPlayGames.util.MiscUtil.writeDamageData;
 
-public class RequestCommand extends Command {
+public class RequestCommand extends BotStaffCommand {
     public RequestCommand() {
         super("request");
     }

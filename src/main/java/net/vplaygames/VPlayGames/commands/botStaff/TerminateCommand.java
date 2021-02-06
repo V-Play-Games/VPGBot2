@@ -16,10 +16,9 @@
 package net.vplaygames.VPlayGames.commands.botStaff;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.data.Bot;
 
-public class TerminateCommand extends Command {
+public class TerminateCommand extends BotStaffCommand {
     public TerminateCommand() {
         super("terminate");
     }

@@ -15,13 +15,17 @@
  */
 package net.vplaygames.VPlayGames.data;
 
+import com.vplaygames.PM4J.Logger;
+import com.vplaygames.PM4J.caches.DataCache;
 import com.vplaygames.PM4J.caches.PokemasDBCache;
+import com.vplaygames.PM4J.util.Queueable;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.vplaygames.VPlayGames.commands.botStaff.ActivateCommand;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.core.ICommand;
 import net.vplaygames.VPlayGames.core.SplitStream;
@@ -32,14 +36,17 @@ import net.vplaygames.VPlayGames.util.MiscUtil;
 import java.io.*;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static net.vplaygames.VPlayGames.data.GameData.*;
 
 public class Bot {
-    public static final String VERSION = "1.7.0b";
-    public static final File logFile = new File("logFile.txt");
-    public static final File errorFile = new File("errorFile.txt");
-    public static final File damageData = new File("damageData.txt");
+    public static final Class<Bot> clazz = Bot.class;
+    public static final String VERSION = "1.5.0b";
+    public static final File logFile = new File("src/main/resources/logFile.txt");
+    public static final File errorFile = new File("src/main/resources/errorFile.txt");
+    public static final File damageData = new File("src/main/resources/damageData.txt");
     public static JDA jda;
     public static boolean closed = false;
     public static boolean rebooted = false;
@@ -64,37 +71,46 @@ public class Bot {
     public static final String INVALID_INPUTS = "Invalid Amount of Inputs!";
     public static final String APP_NOT_STARTED = "Start a Pokemon Masters Damage Calculation App first!";
     public static final String BASE64 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
-    public static final String[] COMMANDS = {"buff", "cd", "choose", "c", "moveis", "mi", "pm", "stat", "sml", "trainer", "view", "weather", "wthr", "status", "skill", "gauge", "ping", "invite", "dc", "search", "next", "n", "back", "b", "uptime", "hpp", "terrain", "meme", "sequence", "NA"};
-    public static final String[] STAFF_COMMANDS = {"log", "debug", "close", "refresh", "wipe", "request", "parseForId", "parse", "activate", "lightrefresh", "NA"};
     public static TextChannel logChannel;
     public static TextChannel syncChannel;
     public static ScheduledThreadPoolExecutor timer;
     public static HashMap<Long, Damage> DATA = new HashMap<>();
     public static HashMap<String, Damage> DAMAGE_CODES = new HashMap<>();
     public static HashMap<String, ICommand> commands = new HashMap<>();
+    public static ActivateCommand activateCommand;
 
     public static void init() {
-        PokemasDBCache.initialize(true, true);
-        loadCommands();
-        setBooted();
+        retry(PokemasDBCache.getInstance().process(), p -> logChannel.sendMessage("I am ready for anything!\n\t-Morty, Johto Gym Leader, 2020").queue());
+        setLogChannel(jda.getTextChannelById(DEFAULT_LOG_CHANNEL_ID));
+        setSyncChannel(jda.getTextChannelById(DEFAULT_SYNC_CHANNEL_ID));
         initSamples();
+        syncData(damageData);
+        startTimer();
+        loadCommands();
+        setDefaultActivity();
+        setBooted();
         timeAtBoot = MiscUtil.dateTimeNow();
     }
 
     public static void loadCommands() {
         try (ScanResult scanResult = new ClassGraph().acceptPackages("net.vplaygames.VPlayGames").scan()) {
+            HashMap<Class<?>, Throwable> errors = new HashMap<>();
             scanResult.getAllClasses()
                 .stream()
                 .filter(x -> !x.isAbstract() && !x.isInterface())
                 .filter(x -> x.implementsInterface("net.vplaygames.VPlayGames.core.ICommand"))
                 .forEach(x -> {
                     try {
-                        x.loadClass().getConstructor().newInstance();
+                        Logger.log("Loaded "+x.loadClass().getConstructor().newInstance()+" Command\n", Logger.Mode.INFO, clazz);
                     } catch (Throwable e) {
-                        EventHandler.getInstance().process(e);
+                        errors.put(x.loadClass(), e);
                     }
                 });
-            System.out.println("Commands Loaded!");
+            errors.forEach((k, v) -> {
+                Logger.log("Failed to load "+k.getSimpleName()+"\n", Logger.Mode.ERROR, clazz);
+                v.printStackTrace();
+            });
+            System.out.println("All Commands Loaded!");
         }
     }
 
@@ -147,8 +163,8 @@ public class Bot {
 
     public static void setCustomStreams() throws FileNotFoundException {
         if (rebooted) return;
-        System.setOut(new SplitStream(new PrintStream(new FileOutputStream(Bot.logFile,   !Bot.LOCATION.equals("LOCAL"))), System.out));
-        System.setErr(new SplitStream(new PrintStream(new FileOutputStream(Bot.errorFile, !Bot.LOCATION.equals("LOCAL"))), System.err));
+        System.setOut(new SplitStream(new PrintStream(new FileOutputStream(logFile,   !LOCATION.equals("LOCAL"))), System.out));
+        System.setErr(new SplitStream(new PrintStream(new FileOutputStream(errorFile, !LOCATION.equals("LOCAL"))), System.err));
         System.out.println("---- "+MiscUtil.dateTimeNow()+" ----");
         System.err.println("---- "+MiscUtil.dateTimeNow()+" ----");
     }
@@ -167,5 +183,22 @@ public class Bot {
         } catch (IOException e) {
             EventHandler.getInstance().process(e);
         }
+    }
+
+    public static void startTimer() {
+        (timer = new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "VPG Timer")))
+            .scheduleWithFixedDelay(() -> {
+                syncCount++;
+                Logger.log("Syncing data [" + syncCount + "]\n", Logger.Mode.INFO, clazz);
+                MiscUtil.writeDamageData();
+                syncChannel.sendMessage("Sync [" + LOCATION + "] [" + syncCount + "]").queue();
+                syncChannel.sendMessage("logFile").addFile(logFile).queue();
+                syncChannel.sendMessage("errorFile").addFile(errorFile).queue();
+                syncChannel.sendMessage("damageData").addFile(damageData).queue();
+            },0,20, TimeUnit.MINUTES);
+    }
+
+    public static <T extends DataCache<T, ?>> void retry(Queueable<T> action, Consumer<T> success) {
+        action.queue(success, t -> retry(action, success));
     }
 }

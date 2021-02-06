@@ -16,41 +16,29 @@
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Number;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
 
-public class GaugeCommand extends Command {
+public class GaugeCommand extends DamageAppCommand {
     public GaugeCommand() {
-        super("gauge");
+        super("gauge", 1);
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
-        if (msg.length!=2)
-        {
-            MiscUtil.send(e, Bot.INVALID_INPUTS,true);
-            return;
-        }
+        Damage d = DATA.get(e.getAuthor().getIdLong());
+        int gauge = Strings.toInt(msg[1]);
         String toSend;
-        long aid=e.getAuthor().getIdLong();
-        if(DATA.containsKey(aid))
-        {
-            Damage d = DATA.get(aid);
-            if(Number.isBetween(msg[1],1,6)) {
-                d.setGauge(Strings.toInt(msg[1]));
-                toSend="Set the gauge to "+ Strings.toInt(msg[1])+"!";
-            } else
-                toSend="Invalid Input! "+Strings.toInt(msg[1])+" Gauge Level not possible!";
-            DATA.put(aid,d);
+        if (Number.isBetween(gauge, 0, 6)) {
+            d.setGauge(Strings.toInt(msg[1]));
+            toSend = "Set the gauge to " + gauge + "!";
         } else
-            toSend=Bot.APP_NOT_STARTED;
-        MiscUtil.send(e,toSend,true);
+            toSend = "Invalid Input! " + gauge + " Move Gauges not possible!";
+        MiscUtil.send(e, toSend, true);
     }
 }

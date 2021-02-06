@@ -15,6 +15,8 @@
  */
 package net.vplaygames.VPlayGames.util;
 
+import java.util.StringJoiner;
+
 public class Array {
     public static boolean contains(String a, String[] b) {
         return Strings.equalsAnyIgnoreCase(a, b);
@@ -22,7 +24,7 @@ public class Array {
 
     public static boolean contains(long a, long[] b) {
         boolean bool = false;
-        for (long l:b)bool=bool||a==l;
+        for (long l : b) bool = bool || a == l;
         return bool;
     }
 
@@ -74,15 +76,6 @@ public class Array {
         return b.toString();
     }
 
-    public static String toString(String delimiter, String[] a, String def) {
-        if (a == null) return def;
-        if (a.length == 0) return def;
-        StringBuilder b = new StringBuilder().append("\"").append(a[0]).append("\"");
-        for (int i = 1; i < a.length; i++)
-            b.append(delimiter).append("\"").append(a[i]).append("\"");
-        return b.toString();
-    }
-
     public static String toString(String delimiter1, String delimiter2, String startWith, String endWith, int[][] a, String def) {
         if (a == null) return def;
         if (a.length == 0) return def;
@@ -93,14 +86,14 @@ public class Array {
     }
 
     public static String manyToString(int[]... a) {
-        StringBuilder s = new StringBuilder();
-        for (int[] b : a) s.append(toString(b)).append(";");
+        StringJoiner s = new StringJoiner(";");
+        for (int[] b : a) s.add(toString(b));
         return s.toString();
     }
 
     public static String manyToString(int[][]... a) {
-        StringBuilder s = new StringBuilder();
-        for (int[][] b : a) s.append(toString(b)).append(";");
+        StringJoiner s = new StringJoiner(";");
+        for (int[][] b : a) s.add(toString(b));
         return s.toString();
     }
 

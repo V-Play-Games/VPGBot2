@@ -117,7 +117,4 @@ public class MiscUtil {
             EventHandler.getInstance().process(e);
         }
     }
-
-    public static void ensureAllCommandsLoaded() {
-    }
 }

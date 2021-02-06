@@ -29,7 +29,7 @@ public class OtherEvents {
         if (Strings.equalsAnyIgnoreCase(Strings.reduceToAlphanumeric(MSG), "Hi", "Hey", "Hello", "Bye")) {
             new Response(e.getMessage());
             MiscUtil.send(e,Strings.toProperCase(MSG),true);
-        } if (e.getMessage().getMentionedUsers().contains(e.getJDA().getSelfUser()))
+        } else if (e.getMessage().getMentionedUsers().contains(e.getJDA().getSelfUser()))
             tor = BotPingedEvent(e);
         return tor;
     }

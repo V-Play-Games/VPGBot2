@@ -74,7 +74,18 @@ public class Strings {
     public static String reduceToAlphanumeric(String s) {
         StringBuilder tor = new StringBuilder();
         for (int i = 0; i<s.length(); i++) {
-            if (BASE64.substring(0,BASE64.length()-2).contains(Character.toString(s.charAt(i)))) {
+            if (BASE64.substring(0,62).contains(Character.toString(s.charAt(i)))) {
+                tor.append(s.charAt(i));
+            }
+        }
+        return tor.toString();
+    }
+
+    public static String reduceToAlphabets(String s) {
+        StringBuilder tor = new StringBuilder();
+        s = reduceToAlphanumeric(s);
+        for (int i = 0; i<s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) {
                 tor.append(s.charAt(i));
             }
         }

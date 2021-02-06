@@ -16,45 +16,31 @@
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
-import static net.vplaygames.VPlayGames.data.Bot.INVALID_INPUTS;
 
-public class MoveisCommand extends Command {
+public class MoveisCommand extends DamageAppCommand {
     public MoveisCommand() {
-        super("moveis", "mi");
+        super("moveis", Damage.Status.MOVE_CHOSEN, 1, 0, "mi");
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
         String msg = e.getMessage().getContentRaw();
-        if (msg.split(" ").length<2) {
-            MiscUtil.send(e,INVALID_INPUTS,true);
-            return;
-        }
-        String rslt=msg.substring(msg.split(" ")[0].length()+1);
+        String modifier = Strings.reduceToAlphabets(msg.substring(msg.split(" ")[0].length() + 1).toLowerCase());
         String toSend;
-        long aid=e.getAuthor().getIdLong();
-        if(DATA.containsKey(aid))
-        {
-            Damage d = DATA.get(aid);
-            if(rslt.equals("critical hit")||rslt.equals("ch"))
-            {
-                d.setMod(0,(d.getMod()[0]==1)?0:1);
-                toSend="Ok, I'll remember that the move was"+((d.getMod()[0]==0)?" not":"")+" critical hit.";
-            } else if(rslt.equals("super effective")||rslt.equals("se"))
-            {
-                d.setMod(1,(d.getMod()[1]==1)?0:1);
-                toSend="Ok, I'll remember that the move was"+((d.getMod()[1]==0)?" not":"")+" super effective.";
-            } else
-                toSend="Invalid Modifier!";
-            DATA.put(aid,d);
+        Damage d = DATA.get(e.getAuthor().getIdLong());
+        if (modifier.equals("criticalhit") || modifier.equals("ch")) {
+            d.setMod(0, (d.getMod()[0] == 1) ? 0 : 1);
+            toSend = "Ok, I'll remember that the move was" + (d.getMod()[0] == 0 ? " not" : "") + " critical hit.";
+        } else if (modifier.equals("supereffective") || modifier.equals("se")) {
+            d.setMod(1, (d.getMod()[1] == 1) ? 0 : 1);
+            toSend = "Ok, I'll remember that the move was" + (d.getMod()[1] == 0 ? " not" : "") + " super effective.";
         } else
-            toSend= Bot.APP_NOT_STARTED;
-        MiscUtil.send(e,toSend,true);
+            toSend = "Invalid Modifier!";
+        MiscUtil.send(e, toSend, true);
     }
 }

@@ -16,11 +16,10 @@
 package net.vplaygames.VPlayGames.commands.botStaff;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
-public class ParseCommand extends Command {
+public class ParseCommand extends BotStaffCommand {
     public ParseCommand() {
         super("parse");
     }

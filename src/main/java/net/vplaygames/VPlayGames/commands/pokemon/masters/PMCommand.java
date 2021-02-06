@@ -18,40 +18,40 @@ package net.vplaygames.VPlayGames.commands.pokemon.masters;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
 
 public class PMCommand extends Command {
     public PMCommand() {
-        super("pm");
+        super("pm", 0, null, 1, 1);
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        if (msg.length!=2) {
-            MiscUtil.send(e, Bot.INVALID_INPUTS,true);
-            return;
-        }
+        String mode = e.getMessage().getContentRaw().split(" ")[1].toLowerCase();
         long aid = e.getAuthor().getIdLong();
         String toSend;
-        if(msg[1].equals("start")) {
+        boolean invalid = false;
+        if (mode.equals("start")) {
             if (!DATA.containsKey(aid)) {
-                DATA.put(aid,new Damage(e));
-                toSend = e.getAuthor().getAsMention()+", has created a new PM Damage Calculation Application.";
+                new Damage(e);
+                toSend = " has created a new";
             } else
-                toSend = "A PM Damage Calculator App is already open.";
-        } else if (msg[1].equals("end")) {
+                toSend = ", you already have an opened";
+        } else if (mode.equals("end")) {
             if (DATA.containsKey(aid)) {
-                if (!DATA.get(aid).isEnabled()) Bot.DAMAGE_CODES.remove(DATA.get(aid).getCode());
-                DATA.remove(aid);
-                toSend = e.getAuthor().getAsMention() + " has deleted their PM Damage Calculation Application.";
+                DATA.get(aid).remove();
+                toSend = " has deleted their";
             } else
-                toSend = e.getAuthor().getAsMention() + ", I can't find your PM Damage Calculation Application.";
-        } else
-            toSend="Invalid Input.";
-        MiscUtil.send(e,toSend,true);
+                toSend = ", I can't find your";
+        } else {
+            invalid = true;
+            toSend = "Invalid Input.";
+        }
+        if (!invalid) {
+            toSend = e.getAuthor().getAsMention() + toSend + " Pokemon Masters Damage Calculation Application";
+        }
+        MiscUtil.send(e, toSend, true);
     }
 }

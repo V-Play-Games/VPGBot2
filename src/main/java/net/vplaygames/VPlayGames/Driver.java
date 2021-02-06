@@ -31,6 +31,5 @@ public class Driver {
                 GatewayIntent.GUILD_EMOJIS)
                 .addEventListeners(EventHandler.getInstance())
                 .build();
-        Bot.init();
     }
 }

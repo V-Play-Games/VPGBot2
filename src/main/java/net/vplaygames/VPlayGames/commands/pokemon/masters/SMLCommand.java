@@ -16,41 +16,29 @@
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
 import static net.vplaygames.VPlayGames.util.MiscUtil.returnSP;
 
-public class SMLCommand extends Command {
+public class SMLCommand extends DamageAppCommand {
     public SMLCommand() {
-        super("sml");
+        super("sml", Damage.Status.UNIT_CHOSEN, 1);
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
+        int sml = Strings.toInt(e.getMessage().getContentRaw().split(" ")[1]);
+        Damage d = DATA.get(e.getAuthor().getIdLong());
         String toSend;
-        int tstr;
-        long aid=e.getAuthor().getIdLong();
-        if(DATA.containsKey(aid)) {
-            Damage d = DATA.get(aid);
-            if(d.getAppStatus()>1) {
-                tstr = Strings.toInt(msg[1]);
-                if (tstr < 1 || tstr > 5)
-                    toSend = "Invalid Sync Move Level!";
-                else {
-                    d.setSml(tstr);
-                    toSend="The Sync Move Level of \""+returnSP(d.getUid())+"\" is set to "+tstr+".";
-                }
-            } else
-                toSend="Choose a sync pair first!";
-            DATA.put(aid,d);
-        } else
-            toSend= Bot.APP_NOT_STARTED;
-        MiscUtil.send(e,toSend,true);
+        if (sml < 1 || sml > 5)
+            toSend = "Invalid Sync Move Level!";
+        else {
+            d.setSml(sml);
+            toSend = "The Sync Move Level of \"" + returnSP(d.getUid()) + "\" is set to " + sml + ".";
+        }
+        MiscUtil.send(e, toSend, true);
     }
 }

@@ -16,48 +16,29 @@
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.core.SkillGroup;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.Array;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
-import static net.vplaygames.VPlayGames.data.GameData.skillNames;
 
-public class SkillCommand extends Command {
+public class SkillCommand extends DamageAppCommand {
     public SkillCommand() {
-        super("skill");
+        super("skill", Damage.Status.UNIT_CHOSEN, 1, 0);
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
-        String msg = e.getMessage().getContentRaw(),skill,toSend;
-        long aid = e.getAuthor().getIdLong();
-        int tstr;
-        if (DATA.containsKey(aid))
-        {
-            Damage d = DATA.get(aid);
-            if (d.getAppStatus()>3)
-            {
-                skill=msg.substring(Bot.PREFIX.length()+6);
-                tstr= Array.returnID(skillNames,skill.substring(0,skill.length()-(SkillGroup.isIntensive(skill)?2:0)));
-                toSend="Wait... Let me check, if there is any skill with this name.\n";
-                MiscUtil.send(e,toSend,true);
-                if (skillNames[tstr].equals("NA"))
-                    toSend="I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
-                else
-                {
-                    d.addSkill(skill);
-                    toSend="Succesfully added "+ Strings.toProperCase(skill)+" as a skill in your damage app,";
-                }
-            } else
-                toSend="Choose a move first!";
-            DATA.put(aid,d);
-        } else
-            toSend=Bot.APP_NOT_STARTED;
-        MiscUtil.send(e,toSend,true);
+        String skill = e.getMessage().getContentRaw().substring(e.getMessage().getContentRaw().split(" ")[1].length()+1);
+        String toSend = "Wait... Let me check, if there is any skill with this name.";
+        MiscUtil.send(e, toSend, true);
+        if (SkillGroup.isSkill(skill))
+            toSend = "I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
+        else {
+            DATA.get(e.getAuthor().getIdLong()).addSkill(skill);
+            toSend = "Successfully added " + Strings.toProperCase(skill) + " as a skill in your damage app.";
+        }
+        MiscUtil.send(e, toSend, true);
     }
 }

@@ -16,12 +16,11 @@
 package net.vplaygames.VPlayGames.commands.botStaff;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.processors.EventHandler;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
-public class WipeCommand extends Command {
+public class WipeCommand extends BotStaffCommand {
     public WipeCommand() {
         super("wipe");
     }

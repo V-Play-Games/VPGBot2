@@ -46,4 +46,8 @@ public class UserEmbedInfo {
     public void setProgress(int set) {
         this.progress = set;
     }
+
+    public boolean isInRange(int set) {
+        return set == Math.min(limit, Math.max(set, 0));
+    }
 }

@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringJoiner;
 
+import static net.vplaygames.VPlayGames.data.GameData.skillNames;
+
 public class SkillGroup
 {
     final boolean intensive;
@@ -42,23 +44,24 @@ public class SkillGroup
         for (int j : in) intensity.add(j);
     }
 
-    public SkillGroup(String skillName, boolean intense) {
+    public SkillGroup(String skillName) {
+        intensive = !isUnintensive(skillName);
         intensity = new ArrayList<>();
-        intensive = intense;
         intensity.add(intensive ? Math.max(MiscUtil.charToInt(skillName.charAt(skillName.length() - 1)), 0) : 0);
-        id = Array.returnID(GameData.skillNames, skillName.substring(0, skillName.length() - (intensive ? 2 : 0)));
+        id = getSkillId(skillName);
         name = GameData.skillNames[id];
         skillInfo = GameData.skillInfos[id];
     }
 
+    @Override
     public String toString() {
-        return "name = " + name +
-                "\npassiveString = " + getPassiveString() +
-                "\nmultiplierString = " + getMultiplierString() +
-                "\nskillInfo = " + Arrays.toString(skillInfo) +
-                "\nid = " + id +
-                "\nintensity = " + intensity +
-                "\nintensive = " + intensive;
+        return "SkillGroup{" +
+            "intensive=" + intensive +
+            ", id=" + id +
+            ", name=" + name +
+            ", skillInfo=" + Arrays.toString(skillInfo) +
+            ", intensity=" + intensity +
+            '}';
     }
 
     public boolean isActive(Damage damn) {
@@ -149,10 +152,6 @@ public class SkillGroup
         return skillInfo[0].endsWith("-") ? Math.min(d.buffs[t][bi], 0) : Math.max(d.buffs[t][bi], 0);
     }
 
-    public static boolean isIntensive(String n) {
-        return !Array.contains(n, GameData.unintensiveSkills);
-    }
-
     public boolean isIntensive() {
         return intensive;
     }
@@ -171,5 +170,18 @@ public class SkillGroup
 
     public String getName() {
         return name;
+    }
+
+    public static boolean isUnintensive(String skill) {
+        return Array.contains(Strings.toProperCase(skill), GameData.unintensiveSkills);
+    }
+
+    public static int getSkillId(String skill) {
+        skill = Strings.toProperCase(skill);
+        return Array.returnID(GameData.skillNames, isUnintensive(skill) ? skill : skill.substring(0, skill.length() -  2));
+    }
+
+    public static boolean isSkill(String skill) {
+        return !skillNames[getSkillId(skill)].equals("NA");
     }
 }

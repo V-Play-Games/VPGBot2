@@ -18,13 +18,12 @@ package net.vplaygames.VPlayGames.commands.botStaff;
 import com.vplaygames.PM4J.caches.PokemasDBCache;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.vplaygames.VPlayGames.Driver;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.processors.EventHandler;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
 import static net.vplaygames.VPlayGames.data.Bot.*;
 
-public class RefreshCommand extends Command {
+public class RefreshCommand extends BotStaffCommand {
     public RefreshCommand() {
         super("refresh");
     }
@@ -32,7 +31,7 @@ public class RefreshCommand extends Command {
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
         lightRefresh();
-        PokemasDBCache.forceReinitialize(true, true);
+        retry(PokemasDBCache.getInstance().invalidateCaches(), p -> retry(p.process(), r -> {}));
     }
 
     public static void lightRefresh() {

@@ -16,81 +16,69 @@
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.data.Bot.DATA;
 
-public class StatCommand extends Command {
+public class StatCommand extends DamageAppCommand {
     public StatCommand() {
-        super("stat");
+        super("stat", Damage.Status.UNIT_CHOSEN, 3);
     }
 
     @Override
     public void onCommandRun(GuildMessageReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         String toSend;
-        int tstr;
-        long aid=e.getAuthor().getIdLong();
-        if (DATA.containsKey(aid))
+        Damage d = DATA.get(e.getAuthor().getIdLong());
+        legalityCheck:
         {
-            if(DATA.get(aid).getAppStatus()>1)
-            {
-                if(msg.length>=4)
-                {
-                    tstr= Strings.toInt(msg[3]);
-                    toSend=returnStatMsg(msg[2],msg[1],tstr,aid);
-                } else
-                    toSend="Not enough inputs!";
-            } else
-                toSend="Please choose a Sync Pair first!";
-        } else
-            toSend= Bot.APP_NOT_STARTED;
-        MiscUtil.send(e,toSend,true);
-    }
-
-    public static String returnStatMsg(String m, String target, int s, long aid) {
-        Damage d = DATA.get(aid);
-        String stt_nm;
-        int t;
-        switch (target.toLowerCase()) {
-            case "user":
-            case "u":
-                t=0;
-                break;
-            case "target":
-            case "t":
-                t=1;
-                break;
-            default:
-                return "Cannot find \""+target+"\" entry in list \"stats\"";
+            int targetId;
+            switch (msg[1].toLowerCase()) {
+                case "user":
+                case "u":
+                    targetId = 0;
+                    break;
+                case "target":
+                case "t":
+                    targetId = 1;
+                    break;
+                default:
+                    toSend = "Choose a valid option! See help for this command for more info.";
+                    break legalityCheck;
+            }
+            int stat = Strings.toInt(msg[3]);
+            if (stat < 1) {
+                toSend = "Invalid Stat! Stat cannot be less than 1!";
+                break legalityCheck;
+            }
+            int statId;
+            String statName;
+            switch (msg[2].toLowerCase()) {
+                case "atk":
+                    statId = 0;
+                    statName = "Attack";
+                    break;
+                case "spa":
+                    statId = 1;
+                    statName = "Sp. Atk";
+                    break;
+                case "def":
+                    statId = 2;
+                    statName = "Defence";
+                    break;
+                case "spd":
+                    statId = 3;
+                    statName = "Sp. Def";
+                    break;
+                default:
+                    toSend = "Choose a valid option! See help for this command for more info.";
+                    break legalityCheck;
+            }
+            d.setStats(targetId, statId, stat);
+            toSend = "Set the " + ((targetId == 1) ? "target" : MiscUtil.returnSP(d.getUid())) + "'s " + statName + " stat to " + stat + "!";
         }
-        if(s<1)
-            return "Invalid Stat! Stat cannot be in negative!";
-        switch (m.toLowerCase()) {
-            case "atk":
-                d.setStats(t,0,s);
-                stt_nm="attack";
-                break;
-            case "spa":
-                d.setStats(t,1,s);
-                stt_nm="special attack";
-                break;
-            case "def":
-                d.setStats(t,2,s);
-                stt_nm="defense";
-                break;
-            case "spd":
-                d.setStats(t,3,s);
-                stt_nm="special defense";
-                break;
-            default:
-                return "Cannot find sub-entry \""+m+"\" in entry \""+target+"\" in list \"stats\"";
-        }
-        DATA.put(aid,d);
-        return "Set the "+((t==1)?"target":"**"+MiscUtil.returnSP(d.getUid())+"**")+"'s "+stt_nm+" stat to "+s+"!";
+        MiscUtil.send(e, toSend, true);
     }
 }

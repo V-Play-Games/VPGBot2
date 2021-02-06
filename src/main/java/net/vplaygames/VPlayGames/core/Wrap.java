@@ -36,7 +36,11 @@ import java.util.List;
 
 public class Wrap implements Message {
     private final Message m;
-    private final String content;
+    private String content;
+
+    public Wrap(Message m) {
+        this(m, m.getContentRaw());
+    }
 
     public Wrap(Message m, String content) {
         this.m = m;

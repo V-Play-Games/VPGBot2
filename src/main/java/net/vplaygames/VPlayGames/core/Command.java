@@ -17,6 +17,7 @@ package net.vplaygames.VPlayGames.core;
 
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.processors.Commands;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
 import java.util.HashMap;
@@ -41,6 +42,14 @@ public abstract class Command implements ICommand {
         this(commandName, cooldown, cooldownUnit, 0, -1, aliases);
     }
 
+    protected Command(String commandName, int args, String... aliases) {
+        this(commandName, args, args, aliases);
+    }
+
+    protected Command(String commandName, int minArgs, int maxArgs, String... aliases) {
+        this(commandName, 0, null, minArgs, maxArgs, aliases);
+    }
+
     protected Command(String commandName, long cooldown, TimeUnit cooldownUnit, int minArgs, int maxArgs, String... aliases) {
         this.commandName = commandName;
         this.cooldown = cooldown;
@@ -63,8 +72,13 @@ public abstract class Command implements ICommand {
             onRatelimit(e);
             return false;
         }
-        int args = e.getMessage().getContentRaw().split(" ").length - 1;
-        if (!(minArgs <= args && args <= (maxArgs < 0 ? args : maxArgs))) {
+        e.getChannel().sendTyping().queue();
+        if (!hasAccess(e.getAuthor().getIdLong())) {
+            onAccessDenied(e);
+            return false;
+        }
+        int args = Commands.split(e.getMessage().getContentRaw()).length - 1;
+        if (minArgs > args || args > (maxArgs <= 0 ? args : maxArgs)) {
             onInsufficientArgs(e);
             return false;
         }
@@ -99,5 +113,18 @@ public abstract class Command implements ICommand {
 
     private long calculateCooldownLeft(long inflictedAt) {
         return cooldownInMicro + inflictedAt - System.currentTimeMillis();
+    }
+
+    @Override
+    public void onAccessDenied(GuildMessageReceivedEvent e) {}
+
+    @Override
+    public boolean hasAccess(long aid) {
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return Bot.PREFIX + commandName;
     }
 }

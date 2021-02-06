@@ -26,5 +26,9 @@ public interface ICommand {
 
     void onInsufficientArgs(GuildMessageReceivedEvent e);
 
+    void onAccessDenied(GuildMessageReceivedEvent e);
+
     default void onHelpNeeded(GuildMessageReceivedEvent e) {}
+
+    boolean hasAccess(long aid);
 }

@@ -15,13 +15,11 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Damage;
 
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
-import static net.vplaygames.VPlayGames.core.GameData.trnrs;
-import static net.vplaygames.VPlayGames.core.GameData.types;
 
 public class ViewCommand extends DamageAppCommand {
     public ViewCommand() {
@@ -39,9 +37,7 @@ public class ViewCommand extends DamageAppCommand {
                 if (d.getAppStatus() < 1)
                     toSend = "Choose a Trainer first!";
                 else if (entry.equals("name"))
-                    toSend = "The chosen trainer is named " + trnrs[d.getTid()];
-                else if (entry.equals("id"))
-                    toSend = "The chosen trainer's id is " + d.getTid();
+                    toSend = "The chosen trainer is named " + d.getTrainer().name;
                 else
                     toSend = "Cannot find entry \"" + entry + "\" in list \"" + list + "\"";
                 break;
@@ -54,14 +50,15 @@ public class ViewCommand extends DamageAppCommand {
                 switch (entry) {
                     case "name":
                     case "n":
-                        toSend = "The current chosen move is named " + d.getMoveName();
+                        toSend = "The current chosen move is named " + d.getAttack().name;
                         break;
                     case "info":
                     case "i":
-                        toSend = "Move Info:-\nBase Power: " + d.getMInfo()[0] +
-                            "\nCategory: " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") +
-                            "\nReach: " + ((d.getMInfo()[1] == 1) ? "All opponents" : "An opponent") +
-                            "\nType: " + types[d.getMInfo()[3] - 1];
+                        toSend = "Move Info:-" +
+                            "\nBase Power: " + d.getAttack().base +
+                            "\nCategory: " + d.getAttack().category +
+                            "\nTarget: " + d.getAttack().target +
+                            "\nType: " + d.getAttack().type;
                         break;
                     case "level":
                     case "lvl":
@@ -78,7 +75,7 @@ public class ViewCommand extends DamageAppCommand {
             case "weather":
             case "w":
                 // First letter Capital
-                toSend = d.getWeather().toString().substring(0,1).toUpperCase() + d.getWeather().toString().substring(1).toUpperCase() + ".";
+                toSend = d.getWeather().toString().substring(0, 1).toUpperCase() + d.getWeather().toString().substring(1).toUpperCase() + ".";
                 break;
             default:
                 toSend = "Cannot find list \"" + list + "\"";

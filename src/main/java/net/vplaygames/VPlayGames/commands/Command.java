@@ -73,7 +73,7 @@ public abstract class Command implements ICommand {
             if (!hasAccess(e.getAuthor().getIdLong())) {
                 onAccessDenied(e);
             } else {
-                int args = e.getArgs().size();
+                int args = e.getArgs().size() - 1;
                 if (minArgs > args || args > (maxArgs <= 0 ? args : maxArgs)) {
                     onInsufficientArgs(e);
                 } else {

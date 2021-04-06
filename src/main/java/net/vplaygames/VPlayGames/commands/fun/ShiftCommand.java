@@ -28,40 +28,30 @@ public class ShiftCommand extends Command {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        String shift = Strings.reduceToAlphabets(msg[1]).toLowerCase();
-        if (shift.length()!=2) {
-            e.send("The given shift \""+shift+"\" is not applicable, as it doesn't have only 2 characters.\nSee this command's help for more info").queue();
+        String shift = Strings.reduceToAlphabets(e.getArg(1)).toLowerCase();
+        if (shift.length() != 2) {
+            e.send("The given shift \"" + shift + "\" is not applicable, as it doesn't have only 2 characters.\nSee this command's help for more info").queue();
             return;
         }
         String toShift = String.join(" ", e.getArgsFrom(2));
-        int offset = chars.indexOf(shift.charAt(0))-chars.indexOf(shift.charAt(1));
-        e.send(shift(toShift, offset)).queue();
-    }
-
-    public String shift(String toShift, int offset) {
-        if (offset==0) {
-            return toShift;
-        }
-        String sheet = chars+chars;
-        if (offset<0) {
-            offset = 26+offset;
-        }
+        int offset = chars.indexOf(shift.charAt(0)) - chars.indexOf(shift.charAt(1));
         StringBuilder sb = new StringBuilder();
-        for (char c : toShift.toCharArray()) {
-            if (sheet.contains(c+"")) {
-                sb.append(sheet.charAt(sheet.indexOf(c)+offset));
-            } else if (isNormalUppercaseLetter(c)) {
-                sb.append(sheet.toUpperCase().charAt(sheet.toUpperCase().indexOf(c)+offset));
-            } else {
-                sb.append(c);
+        if (offset == 0) {
+            sb.append(toShift);
+        } else {
+            String sheet = chars + chars;
+            if (offset < 0) {
+                offset += 26;
+            }
+            for (int i = 0; i < toShift.length(); i++) {
+                char c = toShift.charAt(i);
+                sb.append(sheet.contains(c + "")
+                    ? sheet.charAt(sheet.indexOf(c) + offset)
+                    : Character.isUpperCase(c)
+                        ? sheet.toUpperCase().charAt(sheet.toUpperCase().indexOf(c) + offset)
+                        : c);
             }
         }
-        return sb.toString();
-    }
-
-    public boolean isNormalUppercaseLetter(char c) {
-        String string = c + "";
-        return !chars.contains(string) && chars.contains(string.toLowerCase());
+        e.send(sb.toString()).queue();
     }
 }

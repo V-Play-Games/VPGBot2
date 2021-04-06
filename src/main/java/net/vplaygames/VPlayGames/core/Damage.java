@@ -15,7 +15,12 @@
  */
 package net.vplaygames.VPlayGames.core;
 
+import com.vplaygames.PM4J.entities.Move;
+import com.vplaygames.PM4J.entities.Pokemon;
+import com.vplaygames.PM4J.entities.SyncMove;
+import com.vplaygames.PM4J.entities.Trainer;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.vplaygames.VPlayGames.util.MiscUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,31 +29,25 @@ import java.util.StringJoiner;
 import static java.lang.Math.floor;
 import static java.lang.Math.round;
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
-import static net.vplaygames.VPlayGames.util.MiscUtil.returnSP;
 
 public class Damage {
     boolean enabled;
-    int tid;
-    int uid;
-    int pid;
-    int smd;
+    Trainer trainer;
+    Pokemon pokemon;
     int sml;
     AppStatus appStatus;
     int gauge;
     long damage;
     long userId;
     long userTime;
-    String moveName;
+    Attack attack;
     String damageCode;
     String userTag;
     String damageString;
-    int[] uc;
-    int[] mSet;
-    int[] mInfo;
     int[] mod;
     Weather weather;
     Terrain terrain;
-    int[] hpp;
+    int[] hp;
     int[][] stats;
     int[][] buffs;
     Status enemyStatus;
@@ -71,16 +70,10 @@ public class Damage {
     public Damage(long uId, String uTag, String code, long uTime) {
         userId = uId;
         userTime = uTime;
-        tid = 0;
-        uid = 0;
-        pid = 0;
-        smd = 0;
         sml = 1;
-        moveName = "";
         appStatus = AppStatus.of(0);
         gauge = 0;
-        hpp = new int[]{0, 0};
-        mInfo = new int[]{0, 0, 0, 0};
+        hp = new int[]{0, 0};
         mod = new int[]{0, 0, 0, 0};
         weather = Weather.NORMAL;
         terrain = Terrain.NORMAL;
@@ -114,30 +107,23 @@ public class Damage {
 
     // Remover
     public void remove() {
-        if (!enabled) {
-            Bot.DAMAGE_CODES.remove(damageCode);
-        }
+        Bot.DAMAGE_CODES.remove(damageCode);
         DATA.remove(userId);
     }
 
     // Setters
     public Damage copyFrom(Damage d) {
-        tid = d.tid;
-        uid = d.uid;
-        pid = d.pid;
-        smd = d.smd;
+        trainer = d.trainer;
+        pokemon = d.pokemon;
+        attack = d.attack;
         sml = d.sml;
         gauge = d.gauge;
-        moveName = d.moveName;
-        uc = d.uc;
-        mSet = d.mSet;
-        mInfo = d.mInfo;
         mod = d.mod;
         weather = d.weather;
         terrain = d.terrain;
         stats = d.stats;
         buffs = d.buffs;
-        hpp = d.hpp;
+        hp = d.hp;
         enemyStatus = d.enemyStatus;
         userStatus = d.userStatus;
         sstatus = d.sstatus;
@@ -155,23 +141,38 @@ public class Damage {
         return this;
     }
 
-    public Damage setTid(int set) {
-        tid = set;
+    public Damage setTrainer(Trainer set) {
+        trainer = set;
         return this;
     }
 
-    public Damage setUid(int set) {
-        uid = set;
+    public Damage setPokemon(Pokemon set) {
+        pokemon = set;
         return this;
     }
 
-    public Damage setPid(int set) {
-        pid = set;
+    public Damage setPokemon(int set) {
+        pokemon = trainer.pokemonData.get(set);
         return this;
     }
 
-    public Damage setSmd(int set) {
-        smd = set;
+    public Damage setAttack(Attack set) {
+        attack = set;
+        return this;
+    }
+
+    public Damage setAttack(Move set) {
+        attack = new Attack(set);
+        return this;
+    }
+
+    public Damage setAttack(SyncMove set) {
+        attack = new Attack(set);
+        return this;
+    }
+
+    public Damage setAttack(int set) {
+        attack = pokemon.moves.size() == set ? new Attack(pokemon.syncMove) : new Attack(pokemon.moves.get(set));
         return this;
     }
 
@@ -187,33 +188,6 @@ public class Damage {
 
     public Damage setGauge(int set) {
         gauge = set;
-        return this;
-    }
-
-    public Damage setMoveName(String set) {
-        moveName = set;
-        return this;
-    }
-
-    public Damage setUc(int[] set) {
-        uc = set;
-        return this;
-    }
-
-    public Damage setMSet(int[] set) {
-        mSet = set;
-        return this;
-    }
-
-    public Damage setMInfo(int[] set) {
-        if (set.length == 4)
-            mInfo = set;
-        else {
-            for (int i = 0; i < 3; i++) {
-                mInfo[(i == 0) ? i : i + 1] = set[i];
-            }
-            mInfo[1] = 0;
-        }
         return this;
     }
 
@@ -255,8 +229,8 @@ public class Damage {
         return this;
     }
 
-    public Damage setHPP(int target, int set) {
-        hpp[target] = set;
+    public Damage setHP(int target, int set) {
+        hp[target] = set;
 
         return this;
     }
@@ -283,20 +257,16 @@ public class Damage {
         return appStatus.ordinal();
     }
 
-    public int getTid() {
-        return tid;
+    public Trainer getTrainer() {
+        return trainer;
     }
 
-    public int getUid() {
-        return uid;
+    public Pokemon getPokemon() {
+        return pokemon;
     }
 
-    public int getPid() {
-        return pid;
-    }
-
-    public int getSmd() {
-        return smd;
+    public Attack getAttack() {
+        return attack;
     }
 
     public int getSml() {
@@ -311,28 +281,12 @@ public class Damage {
         return userTag;
     }
 
-    public String getMoveName() {
-        return moveName;
-    }
-
     public String getCode() {
         return damageCode;
     }
 
-    public int[] getMInfo() {
-        return mInfo;
-    }
-
     public int[] getMod() {
         return mod;
-    }
-
-    public int[] getMSet() {
-        return mSet;
-    }
-
-    public int[] getUc() {
-        return uc;
     }
 
     public Weather getWeather() {
@@ -343,8 +297,8 @@ public class Damage {
         return terrain;
     }
 
-    public int[] getHPP() {
-        return hpp;
+    public int[] getHP() {
+        return hp;
     }
 
     public Status getStatus(boolean u) {
@@ -368,11 +322,11 @@ public class Damage {
     }
 
     public void refresh() {
-        int mCat = mInfo[2];
-        int mType = mInfo[3];
+        int mCat = MiscUtil.isSpecial(attack.category);
+        int mType = MiscUtil.returnTypeId(attack.type);
         int off = stats[0][mCat];
         int def = stats[1][mCat + 2];
-        int bp = mInfo[0];
+        int bp = attack.minPower;
         int b_o = Math.abs(buffs[0][mCat]);
         double buff_off = (b_o == 0) ? 1 : (b_o == 1) ? 1.25 : (10 + b_o + 2) / 10.0;
         buff_off = (buffs[0][mCat] < 0) ? 1.0 / buff_off : buff_off;
@@ -389,11 +343,11 @@ public class Damage {
         double mod = ch * se * spread * wthr_boost * terrain_boost;
         damage = round(floor(floor(bp * smb * (1 + getPassiveMultiplier())) * (off * buff_off) / (def * buff_def) * mod * roll));
         damageString = "Formula:- (int: (int: " + bp + "x" + smb + "x(1" + getMultiplierString() + "))x((" + off + "x" + buff_off + ")/(" + def + "x" + buff_def + "))x(" + ch + "x" + se + "x" + wthr_boost + "x" + terrain_boost + "x" + spread + ")x" + roll + ")" +
-            "\n\"" + returnSP(uid) + "\" with " +
-            off + " " + ((mInfo[2] == 1) ? "Special" : "Physical") + " Attack stat, while using " +
-            moveName + " at sync move level " + sml +
+            "\n\"" + trainer.name + "\" with " +
+            off + " " + (mCat == 1 ? "Special" : "Physical") + " Attack stat, while using " +
+            attack.name + " at sync move level " + sml +
             ", can deal **__" + damage + "__** damage to an opponent with " +
-            def + " " + ((mInfo[2] == 1) ? "Special" : "Physical") + " Defense stat provided that " +
+            def + " " + (mCat == 1 ? "Special" : "Physical") + " Defense stat provided that " +
             getTargetString() + ", " + weather + ", " + terrain +
             ", the hit was " + ((ch == 1) ? "not " : "") + "a critical hit and was " +
             ((se == 1) ? "" : "super ") + "effective against the opponent.\n\n" + getPassiveString();
@@ -405,7 +359,7 @@ public class Damage {
     }
 
     public String getPassiveString() {
-        if (skills.stream().anyMatch(sg -> sg.isActive(this))) return "";
+        if (skills.stream().noneMatch(sg -> sg.isActive(this))) return "";
         StringJoiner tor = new StringJoiner("\n").add("Skills affecting the damage:-");
         int[] i = {1};
         skills.stream()
@@ -449,16 +403,12 @@ public class Damage {
         if (!(o instanceof Damage))
             return false;
         Damage d = (Damage) o;
-        return tid == d.tid &&
-            uid == d.uid &&
-            pid == d.pid &&
-            smd == d.smd &&
+        return trainer == d.trainer &&
+            pokemon == d.pokemon &&
+            attack == d.attack &&
             sml == d.sml &&
             appStatus == d.appStatus &&
             gauge == d.gauge &&
-            moveName.equals(d.moveName) &&
-            uc == d.uc &&
-            mSet == d.mSet &&
             mod == d.mod &&
             weather.equals(d.weather) &&
             stats == d.stats &&
@@ -473,27 +423,22 @@ public class Damage {
     public String toString() {
         return "Damage{" +
             "enabled=" + enabled +
-            ", tid=" + tid +
-            ", uid=" + uid +
-            ", pid=" + pid +
-            ", smd=" + smd +
+            ", trainer=" + trainer.name +
+            ", pokemon=" + pokemon.name +
+            ", attack=" + attack.name +
             ", sml=" + sml +
             ", appStatus=" + appStatus +
             ", gauge=" + gauge +
             ", damage=" + damage +
             ", userId=" + userId +
             ", userTime=" + userTime +
-            ", moveName=" + moveName +
             ", damageCode=" + damageCode +
             ", userTag=" + userTag +
             ", damageString=" + damageString +
-            ", uc=" + Arrays.toString(uc) +
-            ", mSet=" + Arrays.toString(mSet) +
-            ", mInfo=" + Arrays.toString(mInfo) +
             ", mod=" + Arrays.toString(mod) +
             ", weather=" + weather.name() +
             ", terrain=" + terrain.name() +
-            ", hpp=" + Arrays.toString(hpp) +
+            ", hpp=" + Arrays.toString(hp) +
             ", stats=" + Arrays.toString(stats) +
             ", buffs=" + Arrays.toString(buffs) +
             ", userStatus=" + userStatus +

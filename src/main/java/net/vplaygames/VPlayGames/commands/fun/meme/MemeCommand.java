@@ -45,24 +45,24 @@ public class MemeCommand extends Command {
     public void onCommandRun(CommandReceivedEvent e) {
         if (!e.isFromGuild()) {
             e.send("Sorry, but this command cannot be used in DMs.").queue();
+            return;
         }
-        String[] msg = e.getMessage().getContentRaw().split(" ");
         StringJoiner toSend = new StringJoiner("\n");
         TextChannel tc = (TextChannel) e.getChannel();
         try {
-            switch (msg.length) {
+            switch (e.getArgs().size()) {
                 case 1:
                     toSend.add(getMemeLink(tc, conn.getMeme()));
                     break;
                 case 2:
-                    if (Strings.toInt(msg[1]) < 2) {
-                        toSend.add(getMemeLink(tc, conn.getMeme(msg[1])));
+                    if (Strings.toInt(e.getArg(1)) < 2) {
+                        toSend.add(getMemeLink(tc, conn.getMeme(e.getArg(1))));
                     } else {
-                        conn.getMemes(Integer.parseInt(msg[1])).forEach(meme -> toSend.add(getMemeLink(tc, meme)));
+                        conn.getMemes(Integer.parseInt(e.getArg(1))).forEach(meme -> toSend.add(getMemeLink(tc, meme)));
                     }
                     break;
                 case 3:
-                    conn.getMemes(Strings.toInt(msg[2]), msg[1]).forEach(meme -> toSend.add(getMemeLink(tc, meme)));
+                    conn.getMemes(Strings.toInt(e.getArg(2)), e.getArg(1)).forEach(meme -> toSend.add(getMemeLink(tc, meme)));
                     break;
             }
             e.send(toSend.toString()).queue();

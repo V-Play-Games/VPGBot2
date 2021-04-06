@@ -26,8 +26,10 @@ public class TerminateCommand extends BotStaffCommand {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        e.getChannel().sendMessage("Successfully Closed Event Manger!").complete();
-        e.getJDA().openPrivateChannelById(Bot.BOT_OWNER).queue(pc -> pc.sendMessage(e.getAuthor().getAsTag() + " [" + e.getAuthor().getIdLong() + "] closed me!!").queue());
+        e.getJDA().openPrivateChannelById(Bot.BOT_OWNER)
+            .flatMap(pc -> pc.sendMessage(e.getAuthor().getAsTag() + " [" + e.getAuthor().getIdLong() + "] closed me!!"))
+            .flatMap(m -> e.getChannel().sendMessage("Successfully Closed Event Manger!"))
+            .queue();
         System.out.println(e.getAuthor().getAsTag() + " [" + e.getAuthor().getIdLong() + "] closed me!!");
         Bot.closed = true;
     }

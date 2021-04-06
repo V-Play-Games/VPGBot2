@@ -50,7 +50,7 @@ public class HPCommand extends DamageAppCommand {
                 toSend = "HP Percentage cannot be less than 0 or more than 100!";
                 break legalityCheck;
             }
-            DATA.get(e.getAuthor().getIdLong()).setHPP(t, hpp);
+            DATA.get(e.getAuthor().getIdLong()).setHP(t, hpp);
             toSend = "OK! So, the " + (t == 1 ? "target" : "user") + " was at " + hpp + "% HP.";
         }
         e.send(toSend).queue();

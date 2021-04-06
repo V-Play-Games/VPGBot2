@@ -15,13 +15,12 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
-import static net.vplaygames.VPlayGames.util.MiscUtil.returnSP;
 
 public class SMLCommand extends DamageAppCommand {
     public SMLCommand() {
@@ -37,7 +36,7 @@ public class SMLCommand extends DamageAppCommand {
         else {
             Damage d = DATA.get(e.getAuthor().getIdLong());
             d.setSml(sml);
-            toSend = "The Sync Move Level of \"" + returnSP(d.getUid()) + "\" is set to " + sml + ".";
+            toSend = "The Sync Move Level of \"" + d.getPokemon().name + "\" is set to " + sml + ".";
         }
         e.send(toSend).queue();
     }

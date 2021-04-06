@@ -38,10 +38,10 @@ public class CDCommand extends DamageAppCommand {
             toSend = "Choose a Sync Pair first!!";
         else if (d.getAppStatus() == UNIT_CHOSEN.ordinal())
             toSend = "Move is Missing!";
-        else if (d.getStats()[0][d.getMInfo()[2]] == 0)
-            toSend = MiscUtil.returnSP(d.getUid()) + "'s " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") + " Attack stat is Missing!";
-        else if (d.getStats()[1][d.getMInfo()[2] + 2] == 0)
-            toSend = "The target's " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") + " Defense stat is Missing!";
+        else if (d.getStats()[0][MiscUtil.isSpecial(d.getAttack().category)] == 0)
+            toSend = d.getPokemon().name + "'s " + (MiscUtil.isSpecial(d.getAttack().category) == 1 ? "Special" : "Physical") + " Attack stat is Missing!";
+        else if (d.getStats()[1][MiscUtil.isSpecial(d.getAttack().category) + 2] == 0)
+            toSend = "The target's " + (MiscUtil.isSpecial(d.getAttack().category) == 1 ? "Special" : "Physical") + " Defense stat is Missing!";
         else
             toSend = d.getDamageString();
         e.send(toSend).queue();

@@ -36,14 +36,7 @@ public class Array {
         return a.length - 1;
     }
 
-    public static int returnID(char[] a, char b) {
-        for (int i = 0; i < a.length; i++)
-            if (b == a[i])
-                return i;
-        return a.length - 1;
-    }
-
-    public static String toString(String delimiter, Object[] a, String def) {
-        return (a == null || a.length == 0) ? def : Arrays.stream(a).collect(() -> new StringJoiner(delimiter), (sj, o) -> sj.add(o.toString()), StringJoiner::merge).toString();
+    public static String toString(String delimiter, String[] a, String def) {
+        return (a == null || a.length == 0) ? def : Arrays.stream(a).collect(() -> new StringJoiner(delimiter), StringJoiner::add, StringJoiner::merge).toString();
     }
 }

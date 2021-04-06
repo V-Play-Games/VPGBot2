@@ -26,6 +26,6 @@ public class DebugCommand extends BotStaffCommand {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        e.send(String.valueOf(Bot.DATA.getOrDefault(Long.parseLong(e.getMessage().getContentRaw().split(" ")[1]),null))).queue();
+        e.send(String.valueOf(Bot.DATA.get(Long.parseLong(e.getArg(2))))).queue();
     }
 }

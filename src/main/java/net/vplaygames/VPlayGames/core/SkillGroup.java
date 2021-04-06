@@ -16,59 +16,48 @@
 package net.vplaygames.VPlayGames.core;
 
 import net.vplaygames.VPlayGames.util.Array;
-import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.util.Strings;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.StringJoiner;
 
 import static net.vplaygames.VPlayGames.core.Damage.Status;
 import static net.vplaygames.VPlayGames.core.Damage.Weather;
-import static net.vplaygames.VPlayGames.core.GameData.skillNames;
 
 public class SkillGroup
 {
     final boolean intensive;
-    final int id;
-    final String name;
-    final String[] skillInfo;
+    final PassiveSkill skill;
     final ArrayList<Integer> intensity;
     Damage d;
 
-    public SkillGroup(int i, boolean b, int[] in) {
-        intensity = new ArrayList<>();
-        intensive = b;
-        id = i;
-        name = GameData.skillNames[id];
-        skillInfo = GameData.skillInfos[id];
+    public SkillGroup(String skillName, int[] in) {
+        this(skillName);
         for (int j : in) intensity.add(j);
     }
 
     public SkillGroup(String skillName) {
         intensive = !isUnintensive(skillName);
+        skill = PassiveSkill.Data.instance.get(Strings.reduceToAlphabets(skillName));
         intensity = new ArrayList<>();
-        intensity.add(intensive ? Math.max(MiscUtil.charToInt(skillName.charAt(skillName.length() - 1)), 0) : 0);
-        id = getSkillId(skillName);
-        name = GameData.skillNames[id];
-        skillInfo = GameData.skillInfos[id];
+        // '0' = 48
+        intensity.add(intensive ? Math.max(skillName.charAt(skillName.length() - 1) - 48, 0) : 0);
     }
 
     @Override
     public String toString() {
-        return "SkillGroup{" +
-            "intensive=" + intensive +
-            ", id=" + id +
-            ", name=" + name +
-            ", skillInfo=" + Arrays.toString(skillInfo) +
-            ", intensity=" + intensity +
+        return "{" +
+            "\"intensive\":" + intensive +
+            ", \"skill\":" + skill +
+            ", \"intensity\":" + intensity +
             '}';
     }
 
     public boolean isActive(Damage damn) {
         d=damn;
-        boolean act1=(skillInfo[2].equals("s") && d.getMoveName().endsWith(" (Sync Move)")) || (skillInfo[2].equals("m")&&!d.getMoveName().endsWith(" (Sync Move)")) || skillInfo[2].equals("a");
-        int t = (skillInfo[1].equals("t"))?1:0,b;
-        String r = skillInfo[0];
+        boolean act1=(skill.modifies==1 && !d.getAttack().isSync) || (skill.modifies==2&&d.getAttack().isSync) || skill.modifies==3;
+        int t = skill.checks,b;
+        String r = skill.condition;
         boolean act2=false;
         boolean j=false;
         switch (r.charAt(r.length()-1)) {
@@ -90,7 +79,7 @@ public class SkillGroup
             case "psn":  act2 = d.getStatus(t==1).equals(Status.POISON); break;
             case "brn":  act2 = d.getStatus(t==1).equals(Status.BURN); break;
             case "frz":  act2 = d.getStatus(t==1).equals(Status.FREEZE); break;
-            // case "sstts": act2=Array.sumAll(d.sstatus[t])!=0; break;
+          //case "sstts": act2=Array.sumAll(d.sstatus[t])!=0; break;
             case "fln": act2=d.sstatus[t][0]==1; break;
             case "cf":  act2=d.sstatus[t][1]==1; break;
             case "trp": act2=d.sstatus[t][2]==1; break;
@@ -104,7 +93,7 @@ public class SkillGroup
             case "spe": b=d.buffs[t][4]; act2=j?b<0:b>0; break;
             case "acc": b=d.buffs[t][5]; act2=j?b<0:b>0; break;
             case "eva": b=d.buffs[t][6]; act2=j?b<0:b>0; break;
-            case "hpp": act2=d.hpp[t]>0; break;
+            case "hpp": act2=d.hp[t]>0; break;
         }
         return act1&&act2;
     }
@@ -115,10 +104,10 @@ public class SkillGroup
     }
 
     public String getPassiveString() {
-        if (!intensive) return name;
+        if (!intensive) return skill.name;
         StringJoiner tor = new StringJoiner("+");
         intensity.forEach(i -> tor.add(i.toString()));
-        return name + " " + tor.toString();
+        return skill.name + " " + tor.toString();
     }
 
     public String getMultiplierString() {
@@ -131,15 +120,15 @@ public class SkillGroup
         return getMultiplier(intensity.stream().mapToInt(i -> i).sum());
     }
 
-    public double getMultiplier(int tIntensity) {
+    public double getMultiplier(int intensity) {
         double tor;
-        switch (skillInfo[0]) {
-            case "mg": tor=d.gauge*tIntensity/100.0; break;
-            case "hppu": tor=d.hpp[0]*tIntensity/100.0; break;
-            case "hppt": tor=d.hpp[1]*tIntensity/100.0; break;
+        switch (skill.condition) {
+            case "mg": tor=d.gauge*intensity/100.0; break;
+            case "hppu": tor=d.hp[0]*intensity/100.0; break;
+            case "hppt": tor=d.hp[1]*intensity/100.0; break;
             default:
                 if (intensive)
-                    tor=tIntensity/10.0;
+                    tor=intensity/10.0;
                 else
                     tor=1+Math.abs(getStatDependency()/2.0);
         }
@@ -147,9 +136,9 @@ public class SkillGroup
     }
 
     public int getStatDependency() {
-        int t = (skillInfo[1].equals("t")) ? 1 : 0;
-        int bi = Array.returnID(new String[]{"atk", "spa", "def", "spd", "spe", "acc", "eva"}, skillInfo[0].substring(0, skillInfo[0].length() - 1));
-        return skillInfo[0].endsWith("-") ? Math.min(d.buffs[t][bi], 0) : Math.max(d.buffs[t][bi], 0);
+        int t = skill.checks;
+        int bi = Array.returnID(new String[]{"atk", "spa", "def", "spd", "spe", "acc", "eva"}, skill.condition.substring(0, skill.condition.length() - 1));
+        return skill.condition.endsWith("-") ? Math.min(d.buffs[t][bi], 0) : Math.max(d.buffs[t][bi], 0);
     }
 
     public boolean isIntensive() {
@@ -157,18 +146,14 @@ public class SkillGroup
     }
 
     public String getName() {
-        return name;
+        return skill.name;
     }
 
     public static boolean isUnintensive(String skill) {
-        return Array.contains(skill, GameData.unintensiveSkills);
-    }
-
-    public static int getSkillId(String skill) {
-        return Array.returnID(GameData.skillNames, isUnintensive(skill) ? skill : skill.substring(0, skill.length() -  2));
+        return PassiveSkill.Data.instance.containsKey(skill);
     }
 
     public static boolean isSkill(String skill) {
-        return !skillNames[getSkillId(skill)].equals("NA");
+        return PassiveSkill.Data.instance.containsKey(isUnintensive(skill) ? skill : skill.substring(0, skill.length() -  2));
     }
 }

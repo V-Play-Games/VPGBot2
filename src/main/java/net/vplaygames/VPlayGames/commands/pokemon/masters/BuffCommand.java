@@ -15,10 +15,9 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
-import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
@@ -90,7 +89,7 @@ public class BuffCommand extends DamageAppCommand {
             }
             Damage d = DATA.get(e.getAuthor().getIdLong());
             d.setBuffs(targetId, buffId, buff);
-            toSend = "Set the " + ((targetId == 1) ? "target" : MiscUtil.returnSP(d.getUid())) + "'s " + buffName + " stat buff to " + buff + "!";
+            toSend = "Set the " + (targetId == 1 ? "target" : d.getPokemon().name) + "'s " + buffName + " stat buff to " + buff + "!";
         }
         e.send(toSend).queue();
     }

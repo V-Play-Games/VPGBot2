@@ -15,10 +15,9 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
-import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
@@ -77,7 +76,7 @@ public class StatCommand extends DamageAppCommand {
             }
             Damage d = DATA.get(e.getAuthor().getIdLong());
             d.setStats(targetId, statId, stat);
-            toSend = "Set the " + ((targetId == 1) ? "target" : MiscUtil.returnSP(d.getUid())) + "'s " + statName + " stat to " + stat + "!";
+            toSend = "Set the " + (targetId == 1 ? "target" : d.getPokemon().name) + "'s " + statName + " stat to " + stat + "!";
         }
         e.send(toSend).queue();
     }

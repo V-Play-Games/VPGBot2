@@ -27,6 +27,8 @@ public class PingCommand extends Command {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        jda.getRestPing().queue((ping) -> e.send("Pong!\n**REST Ping**: "+ping+" ms\n**Gateway Ping**: "+jda.getGatewayPing()+" ms").queue());
+        jda.getRestPing()
+            .flatMap(ping -> e.send("Pong!\n**REST Ping**: " + ping + " ms\n**Gateway Ping**: " + jda.getGatewayPing() + " ms"))
+            .queue();
     }
 }

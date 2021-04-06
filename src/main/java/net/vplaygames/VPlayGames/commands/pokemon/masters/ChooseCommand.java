@@ -15,16 +15,13 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Bot;
+import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import java.util.StringJoiner;
-
-import static net.vplaygames.VPlayGames.core.GameData.*;
-import static net.vplaygames.VPlayGames.util.MiscUtil.returnSP;
 
 public class ChooseCommand extends DamageAppCommand {
     public ChooseCommand() {
@@ -37,58 +34,49 @@ public class ChooseCommand extends DamageAppCommand {
         Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
         int temp = Strings.toInt(e.getArg(1)) - 1;
         if (d.getAppStatus() == 1) {
-            if (temp < 0 || temp >= d.getUc().length)
+            if (temp < 0 || temp >= d.getTrainer().pokemonData.size())
                 toSend.add("Invalid Input. There is no trainer at that place.");
             else {
-                d.setUid(d.getUc()[temp])
-                    .setPid(d.getUid() % 1000000)
-                    .setMSet(msets[d.getPid() % 1000 - 1]);
-                toSend.add("This means you want to calculate damage for " + returnSP(d.getUid()))
+                d.setPokemon(temp);
+                toSend.add("This means you want to calculate damage for " + d.getPokemon().name)
                     .add("Choose the move for which you want to calculate the damage:");
-                for (int i = 1; i <= d.getMSet().length; i++)
-                    toSend.add(i + ". " + moves[(d.getMSet()[i - 1] - 1) % 1000]);
-                toSend.add((d.getMSet().length+1) + ". " + smoves[d.getPid() % 1000 - 1] + " (Sync Move)")
-                    .add("Give your choice in an integer number in the range of 1-" + (d.getMSet().length + 1))
+                for (int i = 0; i < d.getPokemon().moves.size(); i++)
+                    toSend.add((i+1) + ". " + d.getPokemon().moves.get(i).name);
+                toSend.add((d.getPokemon().moves.size()+1) + ". " + d.getPokemon().syncMove.name + " (Sync Move)")
+                    .add("Give your choice in an integer number in the range of 1-" + (d.getPokemon().moves.size() + 1))
                     .add("using the command `" + Bot.PREFIX + "choose <choice>`");
                 d.updateAppStatus();
             }
         } else if (d.getAppStatus() == 2) {
-            if (temp < 0 || temp > d.getMSet().length)
+            if (temp < 0 || temp > d.getPokemon().moves.size())
                 toSend.add("Invalid Input. There is no move at that place.");
             else {
-                if (temp == d.getMSet().length) {
-                    d.setMoveName(smoves[d.getPid() % 1000 - 1] + " (Sync Move)")
-                        .setMInfo(sminfos[d.getPid() % 1000 - 1]);
+                d.setAttack(temp);
+                if (d.getAttack().minPower==0) {
+                    toSend.add("Choose a damaging attack! \""+d.getAttack().name +"\" is not a damaging attack.");
                 } else {
-                    d.setSmd(d.getMSet()[temp] / 1000)
-                        .setMInfo(minfos[(d.getMSet()[temp] - 1) % 1000])
-                        .setMoveName(moves[(d.getMSet()[temp] - 1) % 1000]);
-                }
-                toSend.add("You chose " + d.getMoveName() + ".")
-                    .add("\nMove Info:-")
-                    .add("Base Power: " + d.getMInfo()[0])
-                    .add("Category: " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical"))
-                    .add("Target: " + ((d.getMInfo()[1] == 1) ? "All opponents" : "An opponent"))
-                    .add("Type: " + types[d.getMInfo()[3] - 1])
-                    .add("\nUse `" + Bot.PREFIX + "view move info` to view this info again.");
-                if (d.getMInfo()[1] == 1) {
-                    toSend.add("This move can affect more than 1 targets.")
-                        .add("How many targets were on the field when the move was used?")
-                        .add("1. 1")
-                        .add("2. 2")
-                        .add("3. 3")
-                        .add("Give your choice in an integer number in the range of 1-3")
-                        .add("using the command `" + Bot.PREFIX + "choose <choice>`");
-                } else
+                    toSend.add("You chose " + d.getAttack().name + ".")
+                        .add("\nMove Info:-")
+                        .add("Base Power: " + d.getAttack().minPower)
+                        .add("Category: " + d.getAttack().category)
+                        .add("Target: " + d.getAttack().target)
+                        .add("Type: " + d.getAttack().type)
+                        .add("\nUse `" + Bot.PREFIX + "view move info` to view this info again.");
+                    if (d.getAttack().target.equals("All Opponents")) {
+                        toSend.add("This move can affect more than 1 targets.")
+                            .add("How many targets were on the field when the move was used?")
+                            .add("Give your choice in an integer number in the range of 1-3")
+                            .add("using the command `" + Bot.PREFIX + "choose <choice>`");
+                    } else
+                        d.updateAppStatus();
                     d.updateAppStatus();
-                d.updateAppStatus();
+                }
             }
         } else if (d.getAppStatus() == 3) {
-            temp++;
-            if (temp < 1 || temp > 3)
+            if (temp < 0 || temp > 2)
                 toSend.add("Invalid no. of targets.");
             else {
-                d.setMod(2, temp).updateAppStatus();
+                d.setMod(2, temp+1).updateAppStatus();
                 toSend.add("Set the no. of targets to " + temp + ".");
             }
         } else

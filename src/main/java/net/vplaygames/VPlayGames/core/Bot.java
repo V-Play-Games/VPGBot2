@@ -43,8 +43,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-import static net.vplaygames.VPlayGames.core.GameData.*;
-
 public class Bot {
     public static final Class<Bot> clazz = Bot.class;
     public static final String VERSION = "1.6.0b";
@@ -125,14 +123,9 @@ public class Bot {
 
     public static void initSamples() {
         Damage d = new Damage(jda.getSelfUser().getIdLong(), jda.getSelfUser().getAsTag(), "SAMPLE");
-        d.setTid(Array.returnID(trnrs, "red"))
-            .setUc(tdabs[d.getTid() - 1])
-            .setUid(d.getUc()[1])
-            .setPid(d.getUc()[1] % 1000000)
-            .setMSet(msets[d.getPid() % 1000 - 1])
-            .setSmd(d.getMSet()[0] / 1000)
-            .setMInfo(minfos[(d.getMSet()[0] - 1) % 1000])
-            .setMoveName(moves[(d.getMSet()[0] - 1) % 1000])
+        d.setTrainer(TrainerDataCache.getInstance().get("red"))
+            .setPokemon(1)
+            .setAttack(3)
             .setMod(2, 1)
             .setSml(5)
             .setStats(0, 1, 420)

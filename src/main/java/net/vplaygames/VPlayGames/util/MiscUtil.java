@@ -23,8 +23,6 @@ import java.time.LocalTime;
 import java.util.StringJoiner;
 import java.util.TimeZone;
 
-import static net.vplaygames.VPlayGames.core.GameData.*;
-
 public class MiscUtil {
     public static String msToString(long ms) {
         if (ms < 0) throw new IllegalArgumentException("ms cannot be in negative!");
@@ -49,11 +47,7 @@ public class MiscUtil {
         return tor.toString();
     }
 
-    public static int charToInt(char a) {
-        return Array.returnID(new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}, a);
-    }
-
-    public static String returnSPs(int tid) {
+    /*public static String returnSPs(int tid) {
         StringJoiner r = new StringJoiner("\n").add("");
         for (int i = 0; i < tdabs[tid - 1].length; i++)
             r.add((i + 1) + ". " + returnSP(tdabs[tid - 1][i]));
@@ -73,7 +67,7 @@ public class MiscUtil {
                 trnr += "(Summer 20" + (19 + (uid / 1000000) % 10) + ")";
         }
         return trnr + sp;
-    }
+    }*/
 
     public static String dateTimeNow() {
         String lt = LocalTime.now().toString();
@@ -93,5 +87,32 @@ public class MiscUtil {
             e.printStackTrace();
         }
         return tor;
+    }
+
+    public static int isSpecial(String special) {
+        return special.equalsIgnoreCase("special")?1:0;
+    }
+
+    public static int returnTypeId(String type) {
+        switch (Strings.reduceToAlphabets(type).toLowerCase()) {
+            case "Bug":      return 1;
+            case "Dark":     return 2;
+            case "Dragon":   return 3;
+            case "Electric": return 4;
+            case "Fairy":    return 5;
+            case "Fighting": return 6;
+            case "Fire":     return 7;
+            case "Flying":   return 8;
+            case "Ghost":    return 9;
+            case "Grass":    return 10;
+            case "Ground":   return 11;
+            case "Ice":      return 12;
+            case "Normal":   return 13;
+            case "Poison":   return 14;
+            case "Psychic":  return 15;
+            case "Rock":     return 16;
+            case "Steel":    return 17;
+            default:         return 18; // Water
+        }
     }
 }

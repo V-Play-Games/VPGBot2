@@ -21,13 +21,25 @@ import net.vplaygames.VPlayGames.core.Bot;
 
 public class WipeCommand extends BotStaffCommand {
     public WipeCommand() {
-        super("wipe");
+        super("wipe", 0, null, 1, 1);
     }
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        Bot.DATA.clear();
-        Bot.DAMAGE_CODES.clear();
-        e.send("All Data Wiped!").queue();
+        switch (e.getArg(1)) {
+            case "data":
+                Bot.DATA.clear();
+                break;
+            case "codes":
+                Bot.DAMAGE_CODES.clear();
+                break;
+            case "all":
+                Bot.DATA.clear();
+                Bot.DAMAGE_CODES.clear();
+            case "ratelimit":
+                Bot.commands.forEach((commandName, command) -> command.getRateLimited().clear());
+                break;
+        }
+        e.send("Data Wiped!").queue();
     }
 }

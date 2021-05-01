@@ -15,11 +15,11 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
+import net.vplaygames.VPlayGames.core.Damage;
 
-import static net.vplaygames.VPlayGames.core.Bot.DATA;
 import static net.vplaygames.VPlayGames.core.Damage.Status.*;
 
 public class StatusCommand extends DamageAppCommand {
@@ -46,7 +46,7 @@ public class StatusCommand extends DamageAppCommand {
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            Damage d = DATA.get(e.getAuthor().getIdLong());
+            Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
             String statusName;
             switch (e.getArg(2)) {
                 case "paralyzed":
@@ -87,26 +87,26 @@ public class StatusCommand extends DamageAppCommand {
                 case "flinched":
                 case "flinch":
                 case "fln":
-                    d.setSStatus(user ? 0 : 1, 0);
-                    statusName = (d.getSStatus()[user ? 0 : 1][0] == 0 ? "not " : "") + "flinched";
+                    d.setInterference(user ? 0 : 1, 0);
+                    statusName = (d.getInterference()[user ? 0 : 1][0] == 0 ? "not " : "") + "flinched";
                     break;
                 case "confused":
                 case "confuse":
                 case "cnf":
-                    d.setSStatus(user ? 0 : 1, 1);
-                    statusName = (d.getSStatus()[user ? 0 : 1][1] == 0 ? "not " : "") + "confused";
+                    d.setInterference(user ? 0 : 1, 1);
+                    statusName = (d.getInterference()[user ? 0 : 1][1] == 0 ? "not " : "") + "confused";
                     break;
                 case "trapped":
                 case "trap":
                 case "trp":
-                    d.setSStatus(user ? 0 : 1, 2);
-                    statusName = (d.getSStatus()[user ? 0 : 1][2] == 0 ? "not " : "") + "trapped";
+                    d.setInterference(user ? 0 : 1, 2);
+                    statusName = (d.getInterference()[user ? 0 : 1][2] == 0 ? "not " : "") + "trapped";
                     break;
                 default:
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            toSend = "So, the target was " + statusName;
+            toSend = "So, " + (user ? d.getPokemon().name : "the target") + " was " + statusName;
         }
         e.send(toSend).queue();
     }

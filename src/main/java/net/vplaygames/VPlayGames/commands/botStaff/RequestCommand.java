@@ -21,12 +21,14 @@ import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 import org.json.simple.JSONObject;
 
+import java.io.File;
+
 public class RequestCommand extends BotStaffCommand {
     public RequestCommand() {
         super("request");
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored"})
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
@@ -34,8 +36,9 @@ public class RequestCommand extends BotStaffCommand {
             case "logs":
                 JSONObject toPost = new JSONObject();
                 toPost.putAll(Bot.responses);
-                e.send("Here!").addFile(MiscUtil.makeFileOf(toPost, "logs")).queue();
+                File temp = MiscUtil.makeFileOf(toPost, "logs");
                 toPost.clear();
+                e.send("Here!").addFile(temp).queue(m -> temp.delete());
                 break;
             case "logFile":
                 e.send("logFile").addFile(Bot.logFile).queue();
@@ -43,12 +46,6 @@ public class RequestCommand extends BotStaffCommand {
             case "errorFile":
                 e.send("errorFile").addFile(Bot.errorFile).queue();
                 break;
-                /*
-            case "damageData":
-                writeDamageData();
-                e.send("damageData").addFile(Bot.damageData).queue();
-                break;
-                */
             default:
                 e.send("Access Denied!").queue();
         }

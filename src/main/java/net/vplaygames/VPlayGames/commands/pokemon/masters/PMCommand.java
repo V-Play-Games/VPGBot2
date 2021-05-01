@@ -28,30 +28,31 @@ public class PMCommand extends Command {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        long aid = e.getAuthor().getIdLong();
         String toSend;
+        Damage d = DATA.get(e.getAuthor().getIdLong());
         boolean invalid = false;
         switch (e.getArg(1).toLowerCase()) {
             case "start":
-                if (!DATA.containsKey(aid)) {
-                    new Damage(e);
-                    toSend = " has created a new";
+                if (d == null) {
+                    new Damage(e.getAuthor().getIdLong());
+                    toSend = "have created a new";
                 } else
-                    toSend = ", you already have an opened";
+                    toSend = "already have an open";
                 break;
             case "end":
-                if (DATA.containsKey(aid)) {
-                    DATA.get(aid).remove();
-                    toSend = " has deleted their";
-                } else
-                    toSend = ", I can't find your";
+                if (d != null) {
+                    d.remove();
+                    toSend = "have deleted your";
+                } else {
+                    invalid = true;
+                    toSend = "Your Pokemon Masters Damage Calculation Application was nowhere to be found. RIP";
+                }
                 break;
             default:
                 invalid = true;
                 toSend = "Invalid Input.";
         }
-        e.send(
-            invalid ? toSend : e.getAuthor().getAsMention() + toSend + " Pokemon Masters Damage Calculation Application"
-        ).queue();
+        e.send(invalid ? toSend : "You " + toSend + " Pokemon Masters Damage Calculation Application")
+            .mentionRepliedUser(true).queue();
     }
 }

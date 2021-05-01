@@ -33,23 +33,22 @@ public class ImportCommand extends Command {
     public void onCommandRun(CommandReceivedEvent e) {
         String code = e.getArg(1);
         String toSend;
-        long aid = e.getAuthor().getIdLong();
-        if (code.equals("get")) {
-            if (DATA.containsKey(aid)) {
-                toSend = e.getAuthor().getAsMention() + ", your requested Damage Code is " +  DATA.get(aid).enable().getCode();
-            } else {
-                toSend = "I cannot find a Damage Calculator App created by you, " + e.getAuthor().getAsMention();
-            }
-        } else if (DAMAGE_CODES.containsKey(code)) {
-            Damage d = DAMAGE_CODES.get(code);
-            if (!d.equals(DATA.get(aid))) {
-                DATA.put(aid, new Damage(aid, e.getAuthor().getAsTag()).copyFrom(d));
-                toSend = e.getAuthor().getAsMention() + " has " + (DATA.containsKey(aid) ? "overwritten their Damage App by" : "imported") + " a Damage App Created by " + d.getUserTag();
-            } else {
-                toSend = "This code's Damage App was not imported because either your app is same as the code's app, or you have already imported it.";
-            }
-        } else {
-            toSend = "\"" + code + "\" Damage code not found";
+        Damage d = DATA.get(e.getAuthor().getIdLong());
+        if (code.equals("get"))
+            if (d != null)
+                toSend = "Your requested Damage Code is " + d.enable().getCode();
+            else
+                toSend = "I cannot find a Damage Calculator App created by you.";
+        else {
+            Damage fromCode = DAMAGE_CODES.get(code);
+            if (fromCode != null)
+                if (!fromCode.equals(d)) {
+                    new Damage(e.getAuthor().getIdLong()).copyFrom(fromCode);
+                    toSend = "You have " + (d != null ? "overwritten you Damage App by" : "imported") + " a Damage App from code " + code;
+                } else
+                    toSend = "This code's Damage App was not imported because either your app is same as the code's app, or you have already imported it.";
+            else
+                toSend = "\"" + code + "\" Damage code not found";
         }
         e.send(toSend).queue();
     }

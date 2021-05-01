@@ -34,7 +34,7 @@ public abstract class BotStaffCommand extends Command {
 
     @Override
     public void onAccessDenied(CommandReceivedEvent e) {
-        e.send(e.getAuthor().getAsMention() + ", You do not have the permission to do that!").queue();
+        e.send("You do not have the permission to do that!").queue();
     }
 
     @Override

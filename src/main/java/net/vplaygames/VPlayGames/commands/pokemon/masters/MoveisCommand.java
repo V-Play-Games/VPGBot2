@@ -33,13 +33,11 @@ public class MoveisCommand extends DamageAppCommand {
         switch (String.join("", e.getArgsFrom(1))) {
             case "criticalhit":
             case "ch":
-                d.setMod(0, (d.getMod()[0] == 1) ? 0 : 1);
-                toSend = "Ok, I'll remember that the move was" + (d.getMod()[0] == 0 ? " not" : "") + " critical hit.";
+                toSend = "Ok, I'll remember that the move was" + (d.setMod(0, (d.getMod()[0] == 1) ? 0 : 1).getMod()[0] == 0 ? " not" : "") + " critical hit.";
                 break;
             case "supereffective":
             case "se":
-                d.setMod(1, (d.getMod()[1] == 1) ? 0 : 1);
-                toSend = "Ok, I'll remember that the move was" + (d.getMod()[1] == 0 ? " not" : "") + " super effective.";
+                toSend = "Ok, I'll remember that the move was" + (d.setMod(1, (d.getMod()[1] == 1) ? 0 : 1).getMod()[1] == 0 ? " not" : "") + " super effective.";
                 break;
             default:
                 toSend = "Invalid Modifier!";

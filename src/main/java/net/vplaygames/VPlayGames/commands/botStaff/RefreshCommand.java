@@ -15,11 +15,12 @@
  */
 package net.vplaygames.VPlayGames.commands.botStaff;
 
-import com.vplaygames.PM4J.caches.PokemasDBCache;
 import net.vplaygames.VPlayGames.commands.BotStaffCommand;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
+
+import java.time.Instant;
 
 import static net.vplaygames.VPlayGames.core.Bot.*;
 
@@ -30,16 +31,20 @@ public class RefreshCommand extends BotStaffCommand {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        e.getChannel().sendMessage("Trying a reset!").queue(message -> timer.execute(() -> {
+        e.forceNotLog();
+        e.send("Trying a reset!").queue(message -> timer.execute(() -> {
             long startedAt = System.currentTimeMillis();
-            long oldBooted = booted;
+            Instant oldInstant = instantAtBoot;
+            System.out.println("Shutting Down");
             e.getJDA().shutdown();
             Bot.rebootTasks = () -> {
                 rebooted = true;
-                message.editMessage( "Reset Successfully Completed! Took " + (System.currentTimeMillis() - startedAt) + "ms").queue();
-                booted = oldBooted;
+                Bot.getJDA().getTextChannelById(e.getChannel().getIdLong())
+                    .editMessageById(message.getIdLong(),
+                        "Reset Successfully Completed! Took " + (System.currentTimeMillis() - startedAt) + "ms")
+                    .queue();
+                instantAtBoot = oldInstant;
                 lastRefresh = MiscUtil.dateTimeNow();
-                retry(PokemasDBCache.getInstance().invalidateCaches(), p -> retry(p.process(), r -> {}));
             };
             while (true) {
                 try {

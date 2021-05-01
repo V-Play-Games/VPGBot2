@@ -71,6 +71,6 @@ public abstract class DamageAppCommand extends Command {
 
     @Override
     public boolean hasAccess(long aid) {
-        return Bot.DATA.containsKey(aid) && Bot.DATA.get(aid).getAppStatus() >= minAppStatus.ordinal();
+        return Bot.DATA.containsKey(aid) && Bot.DATA.get(aid).getAppStatusAsInt() >= minAppStatus.ordinal();
     }
 }

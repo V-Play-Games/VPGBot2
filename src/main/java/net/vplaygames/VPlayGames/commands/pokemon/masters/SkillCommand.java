@@ -15,10 +15,10 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.core.SkillGroup;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Damage;
+import net.vplaygames.VPlayGames.core.PassiveSkill;
 import net.vplaygames.VPlayGames.util.Strings;
 
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
@@ -30,13 +30,15 @@ public class SkillCommand extends DamageAppCommand {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        String skill = String.join(" ", e.getArgsFrom(1));
         String toSend;
-        if (!SkillGroup.isSkill(skill)) {
+        String arg = e.getArgsFrom(1).toString();
+        PassiveSkill skill = PassiveSkill.get(arg);
+        if (skill == null)
             toSend = "I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
-        } else {
-            DATA.get(e.getAuthor().getIdLong()).addSkill(skill);
-            toSend = "Successfully added " + Strings.toProperCase(skill) + " as a skill in your damage app.";
+        else {
+            int intensity = Strings.toInt(arg);
+            DATA.get(e.getAuthor().getIdLong()).addSkill(skill, intensity);
+            toSend = "Successfully added " + skill.name + (skill.intensive ? " " + intensity : "") + " as a skill in your damage app.";
         }
         e.send(toSend).queue();
     }

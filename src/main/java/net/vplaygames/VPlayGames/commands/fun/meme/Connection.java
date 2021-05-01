@@ -16,7 +16,7 @@
 package net.vplaygames.VPlayGames.commands.fun.meme;
 
 import com.vplaygames.PM4J.exceptions.ConnectionClosedException;
-import com.vplaygames.PM4J.jsonFramework.JSONArray;
+import com.vplaygames.PM4J.json.JSONArray;
 import com.vplaygames.PM4J.util.MiscUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -54,14 +54,14 @@ public class Connection implements Closeable {
             if (response.code() >= 400) {
                 throw new IOException("An unexpected error has occurred! " + url + " returned HTTP Code " + response.code());
             }
-            tor = response.body() == null ? "" : response.body().string();
+            tor = response.body().string();
         }
         JSONObject jo = MiscUtil.parseJSONObject(tor);
         JSONArray<Meme> ja;
         if (jo.containsKey("memes")) {
-            ja = JSONArray.parse((org.json.simple.JSONArray) jo.get("memes"), Meme.noMeme());
+            ja = JSONArray.parse((org.json.simple.JSONArray) jo.get("memes"), Meme::parse);
         } else {
-            ja = new JSONArray<>(1, Meme.parse(tor));
+            ja = JSONArray.of(Meme.parse(tor));
         }
         return ja;
     }

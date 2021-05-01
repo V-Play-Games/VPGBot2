@@ -17,9 +17,8 @@ package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.Strings;
-
-import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class GaugeCommand extends DamageAppCommand {
     public GaugeCommand() {
@@ -31,7 +30,7 @@ public class GaugeCommand extends DamageAppCommand {
         int gauge = Strings.toInt(e.getArg(1));
         String toSend;
         if (0 <= gauge && gauge <= 6) {
-            DATA.get(e.getAuthor().getIdLong()).setGauge(gauge);
+            Bot.DATA.get(e.getAuthor().getIdLong()).setGauge(gauge);
             toSend = "Set the gauge to " + gauge + "!";
         } else
             toSend = "Invalid Input! " + gauge + " Move Gauges not possible!";

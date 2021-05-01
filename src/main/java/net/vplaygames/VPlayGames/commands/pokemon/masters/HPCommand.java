@@ -17,9 +17,8 @@ package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.Strings;
-
-import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class HPCommand extends DamageAppCommand {
     public HPCommand() {
@@ -29,29 +28,23 @@ public class HPCommand extends DamageAppCommand {
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
         String toSend;
-        legalityCheck:
-        {
-            int t;
-            switch (e.getArg(1).toLowerCase()) {
-                case "user":
-                case "u":
-                    t = 0;
-                    break;
-                case "target":
-                case "t":
-                    t = 1;
-                    break;
-                default:
-                    toSend = "Invalid target \"" + e.getArg(1) + "\".";
-                    break legalityCheck;
-            }
-            int hpp = Strings.toInt(e.getArg(1));
-            if (hpp < 0 || hpp > 100) {
-                toSend = "HP Percentage cannot be less than 0 or more than 100!";
-                break legalityCheck;
-            }
-            DATA.get(e.getAuthor().getIdLong()).setHP(t, hpp);
-            toSend = "OK! So, the " + (t == 1 ? "target" : "user") + " was at " + hpp + "% HP.";
+        int t = 0;
+        switch (e.getArg(1).toLowerCase()) {
+            case "user":
+            case "u":
+                t = -1;
+            case "target":
+            case "t":
+                t += 1;
+                int hp = Strings.toInt(e.getArg(1));
+                if (0 <= hp && hp <= 100) {
+                    Bot.DATA.get(e.getAuthor().getIdLong()).setHP(t, hp);
+                    toSend = "OK! So, the " + (t == 1 ? "target" : "user") + " was at " + hp + "% HP.";
+                } else
+                    toSend = "HP Percentage cannot be less than 0 or more than 100!";
+                break;
+            default:
+                toSend = "Invalid target \"" + e.getArg(1) + "\".";
         }
         e.send(toSend).queue();
     }

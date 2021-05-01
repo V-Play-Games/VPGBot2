@@ -31,7 +31,7 @@ public abstract class Command implements ICommand {
     protected final long cooldownInMicro;
     protected final String name;
     protected final TimeUnit cooldownUnit;
-    protected final HashMap<Long, Ratelimit> ratelimited;
+    public final HashMap<Long, Ratelimit> ratelimited;
 
     protected Command(String name, String... aliases) {
         this(name, 0, null, aliases);
@@ -52,8 +52,8 @@ public abstract class Command implements ICommand {
     protected Command(String name, long cooldown, TimeUnit cooldownUnit, int minArgs, int maxArgs, String... aliases) {
         this.name = name;
         this.cooldown = cooldown;
-        this.cooldownUnit = cooldownUnit == null ? TimeUnit.MICROSECONDS : cooldownUnit;
-        this.cooldownInMicro = this.cooldownUnit.toMicros(cooldown);
+        this.cooldownUnit = cooldownUnit == null ? TimeUnit.MILLISECONDS : cooldownUnit;
+        this.cooldownInMicro = this.cooldownUnit.toMillis(cooldown);
         this.minArgs = minArgs;
         this.maxArgs = maxArgs;
         this.ratelimited = new HashMap<>();
@@ -78,8 +78,15 @@ public abstract class Command implements ICommand {
                     onInsufficientArgs(e);
                 } else {
                     e.getChannel().sendTyping().queue(Void -> {
-                        onCommandRun(e);
-                        ratelimited.put(aid, new Ratelimit(aid));
+                        try {
+                            onCommandRun(e);
+                            ratelimited.put(aid, new Ratelimit(aid));
+                        } catch (Exception exc) {
+                            e.send("There was some trouble processing your request. Please try Again Later.").queue();
+                            e.reportTrouble(exc);
+                        } finally {
+                            e.log();
+                        }
                     });
                 }
             }
@@ -88,21 +95,17 @@ public abstract class Command implements ICommand {
 
     @Override
     public void onRatelimit(CommandReceivedEvent e) {
-        long aid = e.getAuthor().getIdLong();
-        Ratelimit rl = ratelimited.get(aid);
+        Ratelimit rl = ratelimited.get(e.getAuthor().getIdLong());
         long t = calculateCooldownLeft(rl.inflictedAt);
-        String s = "\\RateLimited\\";
         if (!rl.informed) {
-            s = e.getAuthor().getAsMention() + ", you have to wait for **" + MiscUtil.msToString(t) + "** before using this command again.";
-            e.getChannel().sendMessage(s).queue(m ->
-                m.delete().queueAfter(calculateCooldownLeft(rl.inflictedAt),
+            e.send("You have to wait for **" + MiscUtil.msToString(t) + "** before using this command again.")
+                .queue(m -> m.delete().queueAfter(calculateCooldownLeft(rl.inflictedAt),
                     TimeUnit.MILLISECONDS,
-                    (i) -> ratelimited.remove(aid),
-                    (i) -> ratelimited.remove(aid))
-            );
+                    (i) -> ratelimited.remove(rl.inflictedOn),
+                    (i) -> ratelimited.remove(rl.inflictedOn))
+                );
             rl.informed = true;
         }
-        e.responded(s);
     }
 
     @Override
@@ -128,5 +131,10 @@ public abstract class Command implements ICommand {
     @Override
     public String toString() {
         return Bot.PREFIX + name;
+    }
+
+    @Override
+    public HashMap<Long, Ratelimit> getRateLimited() {
+        return ratelimited;
     }
 }

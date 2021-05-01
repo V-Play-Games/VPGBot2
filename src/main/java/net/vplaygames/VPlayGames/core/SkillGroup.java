@@ -16,7 +16,6 @@
 package net.vplaygames.VPlayGames.core;
 
 import net.vplaygames.VPlayGames.util.Array;
-import net.vplaygames.VPlayGames.util.Strings;
 
 import java.util.ArrayList;
 import java.util.StringJoiner;
@@ -26,31 +25,18 @@ import static net.vplaygames.VPlayGames.core.Damage.Weather;
 
 public class SkillGroup
 {
-    final boolean intensive;
     final PassiveSkill skill;
     final ArrayList<Integer> intensity;
     Damage d;
 
-    public SkillGroup(String skillName, int[] in) {
-        this(skillName);
-        for (int j : in) intensity.add(j);
-    }
-
-    public SkillGroup(String skillName) {
-        intensive = !isUnintensive(skillName);
-        skill = PassiveSkill.Data.instance.get(Strings.reduceToAlphabets(skillName));
-        intensity = new ArrayList<>();
-        // '0' = 48
-        intensity.add(intensive ? Math.max(skillName.charAt(skillName.length() - 1) - 48, 0) : 0);
+    public SkillGroup(PassiveSkill skill, int intensity) {
+        this.skill = skill;
+        (this.intensity = new ArrayList<>()).add(intensity);
     }
 
     @Override
     public String toString() {
-        return "{" +
-            "\"intensive\":" + intensive +
-            ", \"skill\":" + skill +
-            ", \"intensity\":" + intensity +
-            '}';
+        return "{\"skill\":" + skill + ", \"intensity\":" + intensity + "}";
     }
 
     public boolean isActive(Damage damn) {
@@ -80,9 +66,9 @@ public class SkillGroup
             case "brn":  act2 = d.getStatus(t==1).equals(Status.BURN); break;
             case "frz":  act2 = d.getStatus(t==1).equals(Status.FREEZE); break;
           //case "sstts": act2=Array.sumAll(d.sstatus[t])!=0; break;
-            case "fln": act2=d.sstatus[t][0]==1; break;
-            case "cf":  act2=d.sstatus[t][1]==1; break;
-            case "trp": act2=d.sstatus[t][2]==1; break;
+            case "fln": act2=d.interference[t][0]==1; break;
+            case "cf":  act2=d.interference[t][1]==1; break;
+            case "trp": act2=d.interference[t][2]==1; break;
             case "ch": act2=d.mod[0]==1; break;
             case "se": act2=d.mod[1]==1; break;
             case "mg": act2=d.gauge>=1; break;
@@ -99,21 +85,18 @@ public class SkillGroup
     }
 
     public void add(int a) {
-        if (!intensive) return;
-        intensity.add(a);
+        if (skill.intensive)
+            intensity.add(a);
     }
 
     public String getPassiveString() {
-        if (!intensive) return skill.name;
-        StringJoiner tor = new StringJoiner("+");
-        intensity.forEach(i -> tor.add(i.toString()));
-        return skill.name + " " + tor.toString();
+        return skill.name + (skill.intensive ? " " + intensity.stream().collect(() -> new StringJoiner("+"), (sj, i) -> sj.add(i.toString()), StringJoiner::merge) : "");
     }
 
     public String getMultiplierString() {
-        StringJoiner tor = new StringJoiner("+").add("");
+        StringJoiner tor = new StringJoiner("+","+","");
         for (int i : intensity) tor.add(String.valueOf(getMultiplier(i)));
-        return intensity.size() == 0 ? tor.add("0").toString() : tor.toString();
+        return tor.toString();
     }
 
     public double getMultiplier() {
@@ -127,7 +110,7 @@ public class SkillGroup
             case "hppu": tor=d.hp[0]*intensity/100.0; break;
             case "hppt": tor=d.hp[1]*intensity/100.0; break;
             default:
-                if (intensive)
+                if (skill.intensive)
                     tor=intensity/10.0;
                 else
                     tor=1+Math.abs(getStatDependency()/2.0);
@@ -141,19 +124,7 @@ public class SkillGroup
         return skill.condition.endsWith("-") ? Math.min(d.buffs[t][bi], 0) : Math.max(d.buffs[t][bi], 0);
     }
 
-    public boolean isIntensive() {
-        return intensive;
-    }
-
     public String getName() {
         return skill.name;
-    }
-
-    public static boolean isUnintensive(String skill) {
-        return PassiveSkill.Data.instance.containsKey(skill);
-    }
-
-    public static boolean isSkill(String skill) {
-        return PassiveSkill.Data.instance.containsKey(isUnintensive(skill) ? skill : skill.substring(0, skill.length() -  2));
     }
 }

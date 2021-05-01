@@ -19,12 +19,13 @@ import com.vplaygames.PM4J.entities.Move;
 import com.vplaygames.PM4J.entities.Pokemon;
 import com.vplaygames.PM4J.entities.SyncMove;
 import com.vplaygames.PM4J.entities.Trainer;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.round;
@@ -32,44 +33,34 @@ import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class Damage {
     boolean enabled;
-    Trainer trainer;
-    Pokemon pokemon;
     int sml;
-    AppStatus appStatus;
     int gauge;
     long damage;
     long userId;
-    long userTime;
-    Attack attack;
-    String damageCode;
-    String userTag;
-    String damageString;
     int[] mod;
-    Weather weather;
-    Terrain terrain;
     int[] hp;
     int[][] stats;
     int[][] buffs;
+    int[][] interference;
+    String damageCode;
+    String damageString;
+    AppStatus appStatus;
+    Trainer trainer;
+    Pokemon pokemon;
+    Attack attack;
+    Weather weather;
+    Terrain terrain;
     Status enemyStatus;
     Status userStatus;
-    int[][] sstatus;
     ArrayList<SkillGroup> skills;
 
-    public Damage(MessageReceivedEvent e) {
-        this(e.getAuthor().getIdLong(), e.getAuthor().getAsTag());
+    public Damage(long userId) {
+        this(userId, generateValid());
     }
 
-    public Damage(long userId, String uTag) {
-        this(userId, uTag, generateValid());
-    }
-
-    public Damage(long userId, String uTag, String code) {
-        this(userId, uTag, code, System.currentTimeMillis());
-    }
-
-    public Damage(long uId, String uTag, String code, long uTime) {
+    public Damage(long uId, String code) {
+        enabled = false;
         userId = uId;
-        userTime = uTime;
         sml = 1;
         appStatus = AppStatus.of(0);
         gauge = 0;
@@ -78,31 +69,25 @@ public class Damage {
         weather = Weather.NORMAL;
         terrain = Terrain.NORMAL;
         enemyStatus = userStatus = Status.NORMAL;
-        sstatus = new int[][]{{0, 0, 0}, {0, 0, 0}};
+        interference = new int[][]{{0, 0, 0}, {0, 0, 0}};
         stats = new int[][]{{0, 0, 0, 0}, {0, 0, 0, 0}};
         buffs = new int[][]{{0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}};
         mod[2] = 1;
-        userTag = uTag;
         damageCode = code;
-        enabled = false;
         skills = new ArrayList<>();
         damage = 0;
         damageString = "0";
         Bot.DATA.put(userId, this);
     }
 
-    // Generates Codes
-    public static String generate() {
-        StringBuilder tor = new StringBuilder();
-        for (int i = 0; i < 6; i++)
-            tor.append(Bot.BASE64.charAt((int) (Math.random() * 64)));
-        return tor.toString();
-    }
-
     public static String generateValid() {
-        String code = generate();
-        while (Bot.DAMAGE_CODES.containsKey(code)) code = generate();
-        return code;
+        StringBuilder tor = new StringBuilder();
+        do {
+            tor.delete(0, 6);
+            for (int i = 0; i < 6; i++)
+                tor.append(Bot.BASE64.charAt((int) (Math.random() * 64)));
+        } while (Bot.DAMAGE_CODES.containsKey(tor.toString()));
+        return tor.toString();
     }
 
     // Remover
@@ -126,7 +111,7 @@ public class Damage {
         hp = d.hp;
         enemyStatus = d.enemyStatus;
         userStatus = d.userStatus;
-        sstatus = d.sstatus;
+        interference = d.interference;
         skills = new ArrayList<>(d.skills);
         enabled = d.enabled;
         appStatus = d.appStatus;
@@ -181,7 +166,7 @@ public class Damage {
         return this;
     }
 
-    public Damage updateAppStatus() {
+    public Damage incrementAppStatus() {
         appStatus = appStatus.next();
         return this;
     }
@@ -214,8 +199,8 @@ public class Damage {
         return this;
     }
 
-    public Damage setSStatus(int t, int set) {
-        sstatus[t][set] = (sstatus[t][set] == 1) ? 0 : 1;
+    public Damage setInterference(int t, int set) {
+        interference[t][set] = (interference[t][set] == 1) ? 0 : 1;
         return this;
     }
 
@@ -235,8 +220,8 @@ public class Damage {
         return this;
     }
 
-    public Damage addSkill(String skill) {
-        skills.add(new SkillGroup(skill));
+    public Damage addSkill(PassiveSkill skill, int intensity) {
+        skills.add(new SkillGroup(skill, intensity));
         return this;
     }
 
@@ -249,12 +234,12 @@ public class Damage {
         return userId;
     }
 
-    public long getUserTime() {
-        return userTime;
+    public int getAppStatusAsInt() {
+        return appStatus.ordinal();
     }
 
-    public int getAppStatus() {
-        return appStatus.ordinal();
+    public AppStatus getAppStatus() {
+        return appStatus;
     }
 
     public Trainer getTrainer() {
@@ -275,10 +260,6 @@ public class Damage {
 
     public int getGauge() {
         return gauge;
-    }
-
-    public String getUserTag() {
-        return userTag;
     }
 
     public String getCode() {
@@ -305,8 +286,8 @@ public class Damage {
         return u ? userStatus : enemyStatus;
     }
 
-    public int[][] getSStatus() {
-        return sstatus;
+    public int[][] getInterference() {
+        return interference;
     }
 
     public int[][] getStats() {
@@ -359,30 +340,25 @@ public class Damage {
     }
 
     public String getPassiveString() {
-        if (skills.stream().noneMatch(sg -> sg.isActive(this))) return "";
+        Stream<SkillGroup> stream = skills.stream().filter(sg -> sg.isActive(this));
+        if (stream.count()==0) return "";
         StringJoiner tor = new StringJoiner("\n").add("Skills affecting the damage:-");
-        int[] i = {1};
-        skills.stream()
-            .filter(sg -> sg.isActive(this))
-            .forEach(sg -> tor.add((i[0]++) + ". " + sg.getPassiveString()));
+        AtomicInteger i = new AtomicInteger(1);
+        stream.forEach(sg -> tor.add(i.getAndIncrement() + ". " + sg.getPassiveString()));
         return tor.toString();
     }
 
     public String getMultiplierString() {
         return skills.stream()
             .filter(sg -> sg.isActive(this))
-            .collect(() -> new StringJoiner(""),
-                ((stringJoiner, skillGroup) -> stringJoiner.add(skillGroup.getMultiplierString())),
-                StringJoiner::merge)
+            .collect(StringBuilder::new,
+                (stringBuilder, skillGroup) -> stringBuilder.append(skillGroup.getMultiplierString()),
+                StringBuilder::append)
             .toString();
     }
 
     public double getPassiveMultiplier() {
-        double tor = 0.0d;
-        for (SkillGroup sg : skills)
-            if (sg.isActive(this))
-                tor += sg.getMultiplier();
-        return tor;
+        return skills.stream().filter(sg -> sg.isActive(this)).mapToDouble(SkillGroup::getMultiplier).sum();
     }
 
     public long getDamage() {
@@ -415,7 +391,7 @@ public class Damage {
             buffs == d.buffs &&
             enemyStatus == d.enemyStatus &&
             userStatus == d.userStatus &&
-            sstatus == d.sstatus &&
+            interference == d.interference &&
             skills.equals(d.skills);
     }
 
@@ -423,27 +399,25 @@ public class Damage {
     public String toString() {
         return "Damage{" +
             "enabled=" + enabled +
-            ", trainer=" + trainer.name +
-            ", pokemon=" + pokemon.name +
-            ", attack=" + attack.name +
+            (trainer == null ? "" :", trainer=" +  trainer.name) +
+            (pokemon == null ? "" :", pokemon=" +  pokemon.name) +
+            (attack == null ? "" :", attack=" +  attack.name) +
             ", sml=" + sml +
             ", appStatus=" + appStatus +
             ", gauge=" + gauge +
             ", damage=" + damage +
             ", userId=" + userId +
-            ", userTime=" + userTime +
             ", damageCode=" + damageCode +
-            ", userTag=" + userTag +
             ", damageString=" + damageString +
-            ", mod=" + Arrays.toString(mod) +
             ", weather=" + weather.name() +
             ", terrain=" + terrain.name() +
-            ", hpp=" + Arrays.toString(hp) +
-            ", stats=" + Arrays.toString(stats) +
-            ", buffs=" + Arrays.toString(buffs) +
             ", userStatus=" + userStatus +
             ", enemyStatus=" + enemyStatus +
-            ", sstatus=" + Arrays.toString(sstatus) +
+            ", hp=" + Arrays.toString(hp) +
+            ", mod=" + Arrays.toString(mod) +
+            ", stats=" + Arrays.deepToString(stats) +
+            ", buffs=" + Arrays.deepToString(buffs) +
+            ", sstatus=" + Arrays.deepToString(interference) +
             ", skills=" + skills +
             '}';
     }
@@ -452,8 +426,8 @@ public class Damage {
         STARTED,
         TRAINER_CHOSEN,
         UNIT_CHOSEN,
-        TARGETS_CHOSEN,
         MOVE_CHOSEN,
+        TARGETS_CHOSEN,
         ABLE_TO_CALCULATE;
 
         public AppStatus next() {

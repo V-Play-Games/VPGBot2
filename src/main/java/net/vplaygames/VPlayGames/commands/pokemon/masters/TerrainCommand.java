@@ -15,11 +15,11 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
+import net.vplaygames.VPlayGames.core.Damage;
 
-import static net.vplaygames.VPlayGames.core.Bot.DATA;
 import static net.vplaygames.VPlayGames.core.Damage.Terrain.*;
 
 public class TerrainCommand extends DamageAppCommand {
@@ -29,7 +29,7 @@ public class TerrainCommand extends DamageAppCommand {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        Damage d = DATA.get(e.getAuthor().getIdLong());
+        Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
         switch (e.getArg(1).toLowerCase()) {
             case "electric":
             case "e":

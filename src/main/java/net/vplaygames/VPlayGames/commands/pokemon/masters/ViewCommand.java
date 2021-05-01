@@ -17,9 +17,8 @@ package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
-
-import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class ViewCommand extends DamageAppCommand {
     public ViewCommand() {
@@ -29,12 +28,12 @@ public class ViewCommand extends DamageAppCommand {
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
         String toSend;
-        Damage d = DATA.get(e.getAuthor().getIdLong());
+        Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
         String list = e.getArg(1), entry = e.getArg(2);
         switch (list) {
             case "trainer":
             case "t":
-                if (d.getAppStatus() < 1)
+                if (d.getAppStatusAsInt() < 1)
                     toSend = "Choose a Trainer first!";
                 else if (entry.equals("name"))
                     toSend = "The chosen trainer is named " + d.getTrainer().name;
@@ -43,7 +42,7 @@ public class ViewCommand extends DamageAppCommand {
                 break;
             case "move":
             case "m":
-                if (d.getAppStatus() < 3) {
+                if (d.getAppStatusAsInt() < 3) {
                     toSend = "Choose a Move first!";
                     break;
                 }

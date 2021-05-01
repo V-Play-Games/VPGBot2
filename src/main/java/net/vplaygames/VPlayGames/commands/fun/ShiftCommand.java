@@ -21,6 +21,7 @@ import net.vplaygames.VPlayGames.util.Strings;
 
 public class ShiftCommand extends Command {
     public static final String chars = "abcdefghijklmnopqrstuvwxyz";
+    public static final String sheet = chars + chars;
 
     public ShiftCommand() {
         super("shift", 2, 0);
@@ -39,10 +40,8 @@ public class ShiftCommand extends Command {
         if (offset == 0) {
             sb.append(toShift);
         } else {
-            String sheet = chars + chars;
-            if (offset < 0) {
+            if (offset < 0)
                 offset += 26;
-            }
             for (int i = 0; i < toShift.length(); i++) {
                 char c = toShift.charAt(i);
                 sb.append(sheet.contains(c + "")

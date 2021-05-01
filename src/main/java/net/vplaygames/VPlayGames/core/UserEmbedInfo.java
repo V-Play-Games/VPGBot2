@@ -15,7 +15,7 @@
  */
 package net.vplaygames.VPlayGames.core;
 
-import com.vplaygames.PM4J.caches.framework.Cache;
+import com.vplaygames.PM4J.caches.Cache;
 
 public class UserEmbedInfo {
     public final long uid;

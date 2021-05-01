@@ -16,11 +16,9 @@
 package net.vplaygames.VPlayGames.core;
 
 import com.vplaygames.PM4J.Logger;
-import com.vplaygames.PM4J.Settings;
-import com.vplaygames.PM4J.caches.*;
-import com.vplaygames.PM4J.entities.Constants;
-import com.vplaygames.PM4J.jsonFramework.JSONArray;
-import com.vplaygames.PM4J.util.Queueable;
+import com.vplaygames.PM4J.caches.TrainerDataCache;
+import com.vplaygames.PM4J.entities.Trainer;
+import com.vplaygames.PM4J.json.JSONArray;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 import net.dv8tion.jda.api.JDA;
@@ -37,31 +35,27 @@ import org.json.simple.parser.JSONParser;
 
 import javax.security.auth.login.LoginException;
 import java.io.*;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 public class Bot {
-    public static final Class<Bot> clazz = Bot.class;
     public static final String VERSION = "1.6.0b";
+    static final Logger logger = new Logger(Bot.class);
     public static final File logFile = new File("src/main/resources/logFile.txt");
     public static final File errorFile = new File("src/main/resources/errorFile.txt");
     public static JDA jda;
     public static boolean closed = false;
     public static boolean rebooted = false;
-    public static int syncCount = 0;
-    public static long booted;
-    public static final long SELF_USER_ID = 747328310828204143L;
-    public static final long BOT_OWNER = 701660977258561557L;
-    public static final long MISS_SHANAYA = 679625927453704203L;
-    public static final long FLASH_TGB = 685365867160010836L;
-    public static final long DEFAULT_LOG_CHANNEL_ID = 762950187492179995L;
-    public static final long DEFAULT_SYNC_CHANNEL_ID = 762950187492179995L;
-    public static final long[] botStaff = {BOT_OWNER, SELF_USER_ID, MISS_SHANAYA, FLASH_TGB};
+    public static int syncCount;
+    public static long BOT_OWNER = 701660977258561557L;
+    public static long LOG_CHANNEL_ID = 762950187492179995L;
+    public static long SYNC_CHANNEL_ID = 762950187492179995L;
+    public static final long[] botStaff = new long[4];
     public static AtomicLong lastMessageProcessedId = new AtomicLong(1);
-    public static String timeAtBoot;
+    public static Instant instantAtBoot;
     public static String lastRefresh = "never";
     public static final String TOKEN = System.getenv("TOKEN");
     public static final String PREFIX = "v!";
@@ -79,7 +73,7 @@ public class Bot {
     public static Runnable rebootTasks = () -> {};
 
     public static void setCustomStreams() throws FileNotFoundException {
-        System.setOut(new SplitStream(new PrintStream(new FileOutputStream(logFile)),   System.out));
+        System.setOut(new SplitStream(new PrintStream(new FileOutputStream(logFile)), System.out));
         System.setErr(new SplitStream(new PrintStream(new FileOutputStream(errorFile)), System.err));
         System.out.println("---- " + MiscUtil.dateTimeNow() + " ----");
         System.err.println("---- " + MiscUtil.dateTimeNow() + " ----");
@@ -97,8 +91,16 @@ public class Bot {
     }
 
     public static void init() {
-        setLogChannel(jda.getTextChannelById(DEFAULT_LOG_CHANNEL_ID));
-        setSyncChannel(jda.getTextChannelById(DEFAULT_SYNC_CHANNEL_ID));
+        try {
+            int i = 0;
+            for (Object o : ((org.json.simple.JSONArray) new JSONParser().parse(new BufferedReader(new FileReader("src/main/resources/botStaff.json")))).toArray())
+                botStaff[i++] = Long.parseLong(o.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        syncCount = 0;
+        setLogChannel(jda.getTextChannelById(LOG_CHANNEL_ID));
+        setSyncChannel(jda.getTextChannelById(SYNC_CHANNEL_ID));
         initData();
         startTimer();
         loadCommands();
@@ -109,21 +111,23 @@ public class Bot {
         logChannel.sendMessage("I am ready for anything!\n\t-Morty, Johto Gym Leader, 2020").queue();
     }
 
-    public static <T extends DataCache<T, ?>> void retry(Queueable<T> action, Consumer<T> success) {
-        action.queue(success, t -> retry(action, success));
-    }
-
     public static void setLogChannel(TextChannel c) {
-        logChannel = c;
+        if (c != null) {
+            LOG_CHANNEL_ID = c.getIdLong();
+            logChannel = c;
+        }
     }
 
     public static void setSyncChannel(TextChannel c) {
-        syncChannel = c;
+        if (c != null) {
+            LOG_CHANNEL_ID = c.getIdLong();
+            syncChannel = c;
+        }
     }
 
     public static void initSamples() {
-        Damage d = new Damage(jda.getSelfUser().getIdLong(), jda.getSelfUser().getAsTag(), "SAMPLE");
-        d.setTrainer(TrainerDataCache.getInstance().get("red"))
+        new Damage(jda.getSelfUser().getIdLong(), "SAMPLE")
+            .setTrainer(TrainerDataCache.getInstance().get("red"))
             .setPokemon(1)
             .setAttack(3)
             .setMod(2, 1)
@@ -135,36 +139,31 @@ public class Bot {
             .setMod(1, 1)
             .setWeather(Damage.Weather.SUN)
             .enable()
-            .updateAppStatus()
-            .updateAppStatus()
-            .updateAppStatus()
-            .updateAppStatus();
+            .incrementAppStatus()
+            .incrementAppStatus()
+            .incrementAppStatus()
+            .incrementAppStatus();
     }
 
     public static void initData() {
         try (FileReader reader = (new FileReader("src\\main\\resources\\dataFile.json"))) {
             System.out.println("Initialising Data");
-            JSONArray.parse((org.json.simple.JSONArray) new JSONParser().parse(reader), Constants.EMPTY_TRAINER)
-                .forEach(t -> TrainerDataCache.getInstance().put(t.name, t));
-            PokemonDataCache.getInstance().useSettings(new Settings().setLogPolicy(false)).process().queue(x ->
-                MoveDataCache.getInstance().useSettings(x.getSettings()).process().queue(y ->
-                    SkillDataCache.getInstance().useSettings(y.getSettings()).process().queue(z ->
-                        System.out.println("Data Initialised"))));
+            JSONArray.parse((org.json.simple.JSONArray) new JSONParser().parse(reader), Trainer::parse);
+            System.out.println("Data Initialised");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public static void startTimer() {
+        if (timer != null) timer.shutdown();
         (timer = new ScheduledThreadPoolExecutor(2, r -> new Thread(r, "VPG Timer")))
             .scheduleWithFixedDelay(() -> {
                 syncCount++;
-                Logger.log("Syncing data [" + syncCount + "]\n", Logger.Mode.INFO, clazz);
-//                MiscUtil.writeDamageData();
+                logger.log("Syncing data [" + syncCount + "]\n", Logger.Mode.INFO);
                 syncChannel.sendMessage("Sync [" + syncCount + "]").queue();
                 syncChannel.sendMessage("logFile").addFile(logFile).queue();
                 syncChannel.sendMessage("errorFile").addFile(errorFile).queue();
-//                syncChannel.sendMessage("damageData").addFile(damageData).queue();
             }, 0, 20, TimeUnit.MINUTES);
     }
 
@@ -173,17 +172,16 @@ public class Bot {
             HashMap<Class<?>, Throwable> errors = new HashMap<>();
             scanResult.getAllClasses()
                 .stream()
-                .filter(x -> !x.isAbstract() && !x.isInterface())
-                .filter(x -> x.implementsInterface("net.vplaygames.VPlayGames.commands.ICommand"))
+                .filter(x -> !x.isAbstract() && !x.isInterface() && x.implementsInterface("net.vplaygames.VPlayGames.commands.ICommand"))
                 .forEach(x -> {
                     try {
-                        Logger.log("Loaded " + x.loadClass().getConstructor().newInstance() + " Command\n", Logger.Mode.INFO, clazz);
+                        logger.log("Loaded " + x.loadClass().getConstructor().newInstance() + " Command\n", Logger.Mode.INFO);
                     } catch (Throwable e) {
                         errors.put(x.loadClass(), e);
                     }
                 });
             errors.forEach((k, v) -> {
-                Logger.log("Failed to load " + k.getSimpleName() + "\n", Logger.Mode.ERROR, clazz);
+                logger.log("Failed to load " + k.getSimpleName() + "\n", Logger.Mode.ERROR);
                 v.printStackTrace();
             });
             System.out.println("All Commands Loaded!");
@@ -191,17 +189,18 @@ public class Bot {
     }
 
     public static void setDefaultActivity() {
-        long memberCount = 0;
-        for (Guild g : jda.getGuilds()) memberCount += g.getMemberCount();
-        jda.getPresence().setActivity(Activity.playing("Version " + VERSION + " with " + memberCount + " people in " + jda.getGuilds().size() + " servers"));
+        jda.getPresence().setActivity(Activity.playing("Version " + VERSION + " with " + jda.getGuilds().stream().mapToLong(Guild::getMemberCount).sum() + " people in " + jda.getGuilds().size() + " servers"));
     }
 
     public static void setBooted() {
-        booted = System.currentTimeMillis();
-        timeAtBoot = MiscUtil.dateTimeNow();
+        instantAtBoot = Instant.now();
     }
 
     public static boolean isStaff(long uid) {
         return Array.contains(uid, botStaff);
+    }
+
+    public static JDA getJDA() {
+        return jda;
     }
 }

@@ -18,9 +18,8 @@ package net.vplaygames.VPlayGames.commands.general;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.vplaygames.VPlayGames.commands.Command;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
-
-import static net.vplaygames.VPlayGames.core.Bot.*;
 
 public class UptimeCommand extends Command {
     public UptimeCommand() {
@@ -30,8 +29,9 @@ public class UptimeCommand extends Command {
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
         e.send(new EmbedBuilder()
-            .addField("Uptime", MiscUtil.msToString(System.currentTimeMillis() - booted) + " (" + (System.currentTimeMillis() - booted) + " ms)", false)
-            .setFooter("Bot booted " + timeAtBoot + (isStaff(e.getAuthor().getIdLong()) ? "\nLast refresh: " + lastRefresh : ""))
-            .setColor(0x1abc9c).build(), "Bot Uptime").queue();
+            .addField("Uptime", MiscUtil.msToString(System.currentTimeMillis() - Bot.instantAtBoot.toEpochMilli()) + " (" + (System.currentTimeMillis() - Bot.instantAtBoot.toEpochMilli()) + " ms)", false)
+            .setFooter((Bot.isStaff(e.getAuthor().getIdLong()) ? "Last refresh: " + Bot.lastRefresh + "\n" : "") + "Last boot ")
+            .setTimestamp(Bot.instantAtBoot)
+            .setColor(0x1abc9c).build(), Bot.instantAtBoot.toString()).queue();
     }
 }

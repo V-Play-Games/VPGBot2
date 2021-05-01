@@ -17,7 +17,8 @@ package net.vplaygames.VPlayGames.commands.fun;
 
 import net.vplaygames.VPlayGames.commands.Command;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
-import net.vplaygames.VPlayGames.util.Strings;
+
+import java.util.regex.Pattern;
 
 public class CaseCommand extends Command {
     public CaseCommand() {
@@ -26,7 +27,7 @@ public class CaseCommand extends Command {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        String input = String.join(" ", e.getArgsFrom(2));
+        String input = e.getContent().substring(e.getContent().lastIndexOf(e.getArg(1))+1);
         switch (e.getArg(1).toLowerCase()) {
             case "upper":
             case "u":
@@ -37,9 +38,24 @@ public class CaseCommand extends Command {
                 input = input.toLowerCase();
                 break;
             case "proper":
-            case "p":
-                input = Strings.toProperCase(input);
-                break;
+            case "p": {
+                boolean capitalNextLetter = true;
+                StringBuilder sb = new StringBuilder();
+                Pattern delimiter = Pattern.compile("[\n\\s]");
+                for (int i = 0; i < input.length(); i++) {
+                    char c = input.charAt(i);
+                    if (Character.isLetter(c))
+                        if (capitalNextLetter)
+                            sb.append(Character.toUpperCase(c));
+                        else
+                            sb.append(Character.toLowerCase(c));
+                    else
+                        sb.append(c);
+                    capitalNextLetter = delimiter.matcher(c+"").matches();
+                }
+                input = sb.toString();
+            }
+            break;
             default:
                 input = "Invalid Case!";
         }

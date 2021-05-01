@@ -33,54 +33,60 @@ public class ChooseCommand extends DamageAppCommand {
         StringJoiner toSend = new StringJoiner("\n");
         Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
         int temp = Strings.toInt(e.getArg(1)) - 1;
-        if (d.getAppStatus() == 1) {
-            if (temp < 0 || temp >= d.getTrainer().pokemonData.size())
-                toSend.add("Invalid Input. There is no trainer at that place.");
-            else {
-                d.setPokemon(temp);
-                toSend.add("This means you want to calculate damage for " + d.getPokemon().name)
-                    .add("Choose the move for which you want to calculate the damage:");
-                for (int i = 0; i < d.getPokemon().moves.size(); i++)
-                    toSend.add((i+1) + ". " + d.getPokemon().moves.get(i).name);
-                toSend.add((d.getPokemon().moves.size()+1) + ". " + d.getPokemon().syncMove.name + " (Sync Move)")
-                    .add("Give your choice in an integer number in the range of 1-" + (d.getPokemon().moves.size() + 1))
-                    .add("using the command `" + Bot.PREFIX + "choose <choice>`");
-                d.updateAppStatus();
-            }
-        } else if (d.getAppStatus() == 2) {
-            if (temp < 0 || temp > d.getPokemon().moves.size())
-                toSend.add("Invalid Input. There is no move at that place.");
-            else {
-                d.setAttack(temp);
-                if (d.getAttack().minPower==0) {
-                    toSend.add("Choose a damaging attack! \""+d.getAttack().name +"\" is not a damaging attack.");
-                } else {
-                    toSend.add("You chose " + d.getAttack().name + ".")
-                        .add("\nMove Info:-")
-                        .add("Base Power: " + d.getAttack().minPower)
-                        .add("Category: " + d.getAttack().category)
-                        .add("Target: " + d.getAttack().target)
-                        .add("Type: " + d.getAttack().type)
-                        .add("\nUse `" + Bot.PREFIX + "view move info` to view this info again.");
-                    if (d.getAttack().target.equals("All Opponents")) {
-                        toSend.add("This move can affect more than 1 targets.")
-                            .add("How many targets were on the field when the move was used?")
-                            .add("Give your choice in an integer number in the range of 1-3")
-                            .add("using the command `" + Bot.PREFIX + "choose <choice>`");
-                    } else
-                        d.updateAppStatus();
-                    d.updateAppStatus();
+        switch (d.getAppStatus()) {
+            case TRAINER_CHOSEN:
+                if (temp < 0 || temp >= d.getTrainer().pokemonData.size())
+                    toSend.add("Invalid Input. There is no pokemon at that place.");
+                else {
+                    d.setPokemon(temp);
+                    toSend.add("This means you want to calculate damage for " + d.getPokemon().name)
+                        .add("Choose the move for which you want to calculate the damage:");
+                    for (int i = 0; i < d.getPokemon().moves.size(); i++)
+                        toSend.add((i+1) + ". " + d.getPokemon().moves.get(i).name);
+                    toSend.add((d.getPokemon().moves.size()+1) + ". " + d.getPokemon().syncMove.name + " (Sync Move)")
+                        .add("Give your choice in an integer number in the range of 1-" + (d.getPokemon().moves.size() + 1))
+                        .add("using the command `" + Bot.PREFIX + "choose <choice>`");
+                    d.incrementAppStatus();
                 }
-            }
-        } else if (d.getAppStatus() == 3) {
-            if (temp < 0 || temp > 2)
-                toSend.add("Invalid no. of targets.");
-            else {
-                d.setMod(2, temp+1).updateAppStatus();
-                toSend.add("Set the no. of targets to " + temp + ".");
-            }
-        } else
-            toSend.add("Cannot find a list to choose from.");
+                break;
+            case UNIT_CHOSEN:
+                if (temp < 0 || temp > d.getPokemon().moves.size())
+                    toSend.add("Invalid Input. There is no move at that place.");
+                else {
+                    d.setAttack(temp);
+                    if (d.getAttack().minPower==0)
+                        toSend.add("Choose a damaging attack! \"" + d.getAttack().name + "\" is not a damaging attack.");
+                    else {
+                        toSend.add("You chose " + d.getAttack().name + ".")
+                            .add("\nMove Info:-")
+                            .add("Base Power: " + d.getAttack().minPower)
+                            .add("Category: " + d.getAttack().category)
+                            .add("Target: " + d.getAttack().target)
+                            .add("Type: " + d.getAttack().type)
+                            .add("\nUse `" + Bot.PREFIX + "view move info` to view this info again.");
+                        if (d.getAttack().target.equalsIgnoreCase("All Opponents"))
+                            toSend.add("\nThis move can affect more than 1 targets.")
+                                .add("How many targets were on the field when the move was used?")
+                                .add("Give your choice in an integer number in the range of 1-3")
+                                .add("using the command `" + Bot.PREFIX + "choose <choice>`")
+                                .add("*Note: If not set, the no. of targets are assumed to be 1*.");
+                        else
+                            d.incrementAppStatus();
+                        d.incrementAppStatus();
+                    }
+                }
+                break;
+            case MOVE_CHOSEN:
+                if (temp < 0 || temp > 2)
+                    toSend.add("Invalid no. of targets.");
+                else {
+                    d.setMod(2, temp+1).incrementAppStatus();
+                    toSend.add("Set the no. of targets to " + (temp+1) + ".");
+                }
+                break;
+            default:
+                toSend.add("Cannot find a list to choose from.");
+        }
         e.send(toSend.toString()).queue();
     }
 }

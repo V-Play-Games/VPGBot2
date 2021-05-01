@@ -19,12 +19,14 @@ import com.vplaygames.PM4J.caches.MoveDataCache;
 import com.vplaygames.PM4J.caches.SkillDataCache;
 import com.vplaygames.PM4J.caches.TrainerDataCache;
 import com.vplaygames.PM4J.entities.*;
-import com.vplaygames.PM4J.jsonFramework.JSONArray;
+import com.vplaygames.PM4J.json.JSONArray;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.vplaygames.VPlayGames.core.Bot;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.StringJoiner;
+import java.util.function.Supplier;
 
 import static net.vplaygames.VPlayGames.core.Bot.PREFIX;
 
@@ -50,23 +52,37 @@ public class EmbedUtil {
         return tor.toArray(new String[0]);
     }
 
+    public static void addFieldSafely(String title, Collection<Pokemon> value, EmbedBuilder eb) {
+        addFieldSafely(title,
+            value.stream()
+            .map(u -> u.syncPair)
+            .collect((Supplier<ArrayList<String>>) ArrayList::new,
+                ArrayList::add,
+                ArrayList::addAll)
+            .toArray(new String[0]),
+            eb);
+    }
+
+    public static void addFieldSafely(String title, String[] value, EmbedBuilder eb) {
+        addFieldSafely(title, value, false, ",\n", ",", "None", eb);
+    }
+
     public static void addFieldSafely(String title, String[] value, boolean inline, String delimiter1, String delimiter2, String def, EmbedBuilder eb) {
-        if (value.length == 0) eb.addField(title, def, inline);
+        if (value.length == 0){ eb.addField(title, def, inline); return;}
         String[] array = breakTillValid(value, delimiter1);
         for (int i = 0; i < array.length; i++) {
             eb.addField(i == 0 ? title : "", array[i] + (i != array.length - 1 ? delimiter2 : ""), inline);
         }
     }
 
-    public static EmbedBuilder prepareEmbed(Trainer td) {
+    public static EmbedBuilder prepareEmbed(Trainer t) {
         EmbedBuilder eb = new EmbedBuilder();
-        eb.setTitle(td.name + "'s Data");
+        eb.setTitle(t.name + "'s Data");
         eb.addField("Details",
-            "**Name:** " + td.name +
-                "\n**Rarity:** " + td.rarity + " Stars" +
-                "\n**Pokemons:** " + Array.toString(", ", td.getPokemon(), ""),
+            "**Name:** " + t.name +
+                "\n**Pokemons:** " + Array.toString(", ", t.pokemon, ""),
             false);
-        eb.setImage(td.img);
+        eb.setImage(t.img);
         eb.setThumbnail(Bot.jda.getSelfUser().getEffectiveAvatarUrl());
         return eb;
     }
@@ -77,12 +93,12 @@ public class EmbedUtil {
         eb.setDescription("Info about " + pokemon.trainer + "'s " + pokemon.name);
         eb.addField("Basic Info",
             "**Name:** " + pokemon.name +
-                "\n**Typing:** " + Array.toString(", ", pokemon.getTyping(), "N/A") +
+                "\n**Typing:** " + Array.toString(", ", pokemon.typing, "N/A") +
                 "\n**Weakness:** " + pokemon.weakness +
                 "\n**Role:** " + pokemon.role +
                 "\n**Rarity:** " + pokemon.rarity + " Stars" +
                 "\n**Gender:** " + pokemon.gender +
-                "\n**Other Forms:** " + Array.toString(", ", pokemon.getOtherForms(), "N/A"),
+                "\n**Other Forms:** " + Array.toString(", ", pokemon.otherForms, "N/A"),
             false);
         eb.addField("Advance Info",
             "\n**Stats:**\n```\n" + getStatsAsSimpleString(pokemon.stats) + "\n```", false);
@@ -115,7 +131,12 @@ public class EmbedUtil {
             m.effect,
             false);
         eb.addField("Usable by:",
-            Array.toString(",\n", node.getUsers(), "None"),
+            node.users.stream()
+                .map(p -> p.syncPair)
+                .collect(() -> new StringJoiner(",\n").setEmptyValue("None"),
+                    StringJoiner::add,
+                    StringJoiner::merge)
+                .toString(),
             false);
         return eb;
     }
@@ -129,8 +150,8 @@ public class EmbedUtil {
             "**Name:** " + p.name +
                 "\n**Description:** " + p.description,
             false);
-        EmbedUtil.addFieldSafely("It is present as the default passive skills of:", node.getInbuilt(), false, ",\n", ",", "None", eb);
-        EmbedUtil.addFieldSafely("It is present on the grid of:", node.getInGrid(), false, ",\n", ",", "None", eb);
+        EmbedUtil.addFieldSafely("It is present as the default passive skills of:", node.inbuilt, eb);
+        EmbedUtil.addFieldSafely("It is present on the grid of:", node.inGrid, eb);
         return eb;
     }
 
@@ -148,7 +169,7 @@ public class EmbedUtil {
             nameList.toString(),
             false);
         eb.addField("General Info",
-            "**Typing:** " + Array.toString(", ", first.getTyping(), "N/A") +
+            "**Typing:** " + Array.toString(", ", first.typing, "N/A") +
                 "\n**Weakness:** " + first.weakness,
             false);
         return eb;
@@ -163,11 +184,11 @@ public class EmbedUtil {
     }
 
     public static String getMovesAsSimpleString(JSONArray<Move> moves) {
-        StringJoiner tor = new StringJoiner("\n");
+        StringJoiner tor = new StringJoiner("\n\n");
         for (int i = 0; i < moves.size(); i++) {
             Move move = moves.get(i);
-            tor.add("Move " + i + ": " + move.name + (move.type.isEmpty() ? "" : " (" + move.type + " Type ") +
-                ")\nPower: " + (move.minPower == 0 ? "--" : move.minPower + "->" + Math.round(Math.floor(move.minPower * 1.2))) +
+            tor.add("Move " + (i+1) + ": " + move.name + (move.type.isEmpty() ? "" : " (" + move.type + " Type)") +
+                "\nPower: " + (move.minPower == 0 ? "--" : move.minPower + "->" + Math.round(Math.floor(move.minPower * 1.2))) +
                 " | Accuracy: " + (move.accuracy == 0 ? "--" : move.accuracy + "%") +
                 " | Gauge: " + (move.cost == 0 ? "--" : move.cost) +
                 "\nTarget: " + move.target +
@@ -184,7 +205,7 @@ public class EmbedUtil {
     public static String getPassivesAsSimpleString(JSONArray<Passive> passives) {
         StringJoiner tor = new StringJoiner("\n");
         for (int i = 0; i < passives.size(); i++) {
-            tor.add(i + ". " + passives.get(i).name + ": " + passives.get(i).description);
+            tor.add((i+1) + ". " + passives.get(i).name + ": " + passives.get(i).description);
         }
         return tor.toString();
     }

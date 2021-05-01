@@ -15,10 +15,14 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
+import net.vplaygames.VPlayGames.core.Ratelimit;
+
+import java.util.HashMap;
+
 public interface ICommand {
     void run(CommandReceivedEvent e);
 
-    void onCommandRun(CommandReceivedEvent e);
+    void onCommandRun(CommandReceivedEvent e) throws Exception;
 
     void onRatelimit(CommandReceivedEvent e);
 
@@ -29,4 +33,6 @@ public interface ICommand {
     void onHelpNeeded(CommandReceivedEvent e);
 
     boolean hasAccess(long aid);
+
+    HashMap<Long, Ratelimit> getRateLimited();
 }

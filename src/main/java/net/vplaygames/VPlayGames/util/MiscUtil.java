@@ -47,28 +47,6 @@ public class MiscUtil {
         return tor.toString();
     }
 
-    /*public static String returnSPs(int tid) {
-        StringJoiner r = new StringJoiner("\n").add("");
-        for (int i = 0; i < tdabs[tid - 1].length; i++)
-            r.add((i + 1) + ". " + returnSP(tdabs[tid - 1][i]));
-        return r.toString();
-    }
-
-    public static String returnSP(int uid) {
-        String sp = " and " + pkmns[uid % 1000 - 1], trnr = trnrs[uid / 1000 % 1000];
-        switch (uid / 10000000) {
-            case 1:
-                trnr = "Sygna Suit " + trnr;
-                break;
-            case 2:
-                trnr += "(Holiday 20" + (19 + (uid / 1000000) % 10) + ")";
-                break;
-            case 3:
-                trnr += "(Summer 20" + (19 + (uid / 1000000) % 10) + ")";
-        }
-        return trnr + sp;
-    }*/
-
     public static String dateTimeNow() {
         String lt = LocalTime.now().toString();
         lt = lt.substring(0, lt.length() - 4);

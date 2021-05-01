@@ -29,12 +29,11 @@ public class BuffCommand extends DamageAppCommand {
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
         String toSend;
         legalityCheck:
         {
             int targetId;
-            switch (msg[1].toLowerCase()) {
+            switch (e.getArg(1).toLowerCase()) {
                 case "user":
                 case "u":
                     targetId = 0;
@@ -47,39 +46,46 @@ public class BuffCommand extends DamageAppCommand {
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            int buff = Strings.toInt(msg[3]);
+            int buff = Strings.toInt(e.getArg(3));
             if (buff < -6 || buff > 6) {
                 toSend = "Invalid Stat! " + ((buff < 0) ? "" : "+") + buff + " stat buff not possible.";
                 break legalityCheck;
             }
             int buffId;
             String buffName;
-            switch (msg[2].toLowerCase()) {
+            switch (String.join("", e.getArgsFrom(2)).toLowerCase()) {
                 case "atk":
+                case "attack":
                     buffId = 0;
                     buffName = "attack";
                     break;
                 case "spa":
+                case "specialattack":
                     buffId = 1;
                     buffName = "special attack";
                     break;
                 case "def":
+                case "defense":
                     buffId = 2;
                     buffName = "defense";
                     break;
                 case "spd":
+                case "specialdefense":
                     buffId = 3;
                     buffName = "special defense";
                     break;
                 case "spe":
+                case "speed":
                     buffId = 4;
                     buffName = "speed";
                     break;
                 case "acc":
+                case "accuracy":
                     buffId = 5;
                     buffName = "accuracy";
                     break;
                 case "eva":
+                case "evasiveness":
                     buffId = 6;
                     buffName = "evasiveness";
                     break;
@@ -87,9 +93,8 @@ public class BuffCommand extends DamageAppCommand {
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            Damage d = DATA.get(e.getAuthor().getIdLong());
-            d.setBuffs(targetId, buffId, buff);
-            toSend = "Set the " + (targetId == 1 ? "target" : d.getPokemon().name) + "'s " + buffName + " stat buff to " + buff + "!";
+            toSend = "Set the " + (targetId == 1 ? "target" : DATA.get(e.getAuthor().getIdLong()).setBuffs(targetId, buffId, buff)
+                .getPokemon().name) + "'s " + buffName + " stat buff to " + buff + "!";
         }
         e.send(toSend).queue();
     }

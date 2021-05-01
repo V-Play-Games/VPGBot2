@@ -15,13 +15,13 @@
  */
 package net.vplaygames.VPlayGames.commands.fun.meme;
 
-import com.vplaygames.PM4J.jsonFramework.ParsableJSONObject;
+import com.vplaygames.PM4J.json.ParsableJSONObject;
 import com.vplaygames.PM4J.util.MiscUtil;
 import org.json.simple.JSONObject;
 
 import java.util.Arrays;
 
-public class Meme implements ParsableJSONObject<Meme> {
+public class Meme implements ParsableJSONObject {
     public final String postLink;
     public final String subreddit;
     public final String title;
@@ -68,14 +68,5 @@ public class Meme implements ParsableJSONObject<Meme> {
                 ",\"author\":\"" + author +
                 "\",\"ups\":" + ups +
                 ",\"previews\":" + Arrays.deepToString(previews)+"}";
-    }
-
-    @Override
-    public Meme parseFromJSON(String JSON) {
-        return parse(JSON);
-    }
-
-    static Meme noMeme() {
-        return new Meme("","","","",false,false,"",0,new String[0]);
     }
 }

@@ -24,9 +24,6 @@ import net.vplaygames.VPlayGames.core.Damage;
 
 import java.util.StringJoiner;
 
-import static net.vplaygames.VPlayGames.core.Bot.DATA;
-import static net.vplaygames.VPlayGames.core.Bot.PREFIX;
-
 public class TrainerCommand extends DamageAppCommand {
     public TrainerCommand() {
         super("trainer");
@@ -35,18 +32,18 @@ public class TrainerCommand extends DamageAppCommand {
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
         StringJoiner toSend = new StringJoiner("\n");
-        Damage d = DATA.get(e.getAuthor().getIdLong());
-        if (d.getAppStatus() == 0) {
+        Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
+        if (d.getAppStatusAsInt() == 0) {
             Trainer trainer = TrainerDataCache.getInstance().get(String.join("", e.getArgsFrom(1)));
             if (trainer == null)
                 toSend.add("I cannot find any trainer with that name. Maybe this trainer is not usable in the game yet.");
             else {
                 d.setTrainer(trainer)
-                    .updateAppStatus();
+                    .incrementAppStatus();
                 toSend.add("Oh, you want to calculate damage for a Pokemon associated with the trainer " + trainer.name + ".")
                     .add("\nI will show you the Pokemon of this trainer.");
-                for (int i = 0; i < trainer.getPokemon().length; i++)
-                    toSend.add((i + 1) + ". " + trainer.getPokemon()[i]);
+                for (int i = 0; i < trainer.pokemon.length; i++)
+                    toSend.add((i + 1) + ". " + trainer.pokemon[i]);
                 if (trainer.pokemonData.size() == 1) {
                     d.setPokemon(0);
                     toSend.add("\nOh, there is only one Pokemon found.")
@@ -57,10 +54,10 @@ public class TrainerCommand extends DamageAppCommand {
                     toSend.add((d.getPokemon().moves.size() + 1) + ". " + d.getPokemon().syncMove.name + " (Sync Move)")
                         .add("Give your choice in an integer number in the range of 1-" + (d.getPokemon().moves.size() + 1))
                         .add("using the command `" + Bot.PREFIX + "choose <choice>`");
-                    d.updateAppStatus();
+                    d.incrementAppStatus();
                 } else
                     toSend.add("\nGive your choice in an integer number in the range of 1-" + trainer.pokemonData.size())
-                        .add("using the command `" + PREFIX + "choose <choice>`");
+                        .add("using the command `" + Bot.PREFIX + "choose <choice>`");
             }
         } else
             toSend.add("You have already chosen the trainer for this Damage Calculation Application.");

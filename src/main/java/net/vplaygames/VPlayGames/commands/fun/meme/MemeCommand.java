@@ -15,15 +15,16 @@
  */
 package net.vplaygames.VPlayGames.commands.fun.meme;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.vplaygames.VPlayGames.commands.Command;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
-import net.vplaygames.VPlayGames.util.Strings;
+import net.vplaygames.VPlayGames.core.Bot;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Random;
-import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 public class MemeCommand extends Command {
@@ -31,48 +32,34 @@ public class MemeCommand extends Command {
     public Connection conn = new Connection();
 
     public MemeCommand() {
-        super("meme", 10, TimeUnit.SECONDS, 0, 2);
-        try {
-            randomMemes.addAll(conn.getMemes(10));
-            randomMemes.addAll(conn.getMemes(10, "PokemonMasters"));
-            randomMemes.addAll(conn.getMemes(10, "Pokemon"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        super("meme", 10, TimeUnit.SECONDS, 0, 1);
+        Bot.timer.execute(() -> {
+            try {
+                randomMemes.addAll(conn.getMemes(10));
+                randomMemes.addAll(conn.getMemes(10, "PokemonMasters"));
+                randomMemes.addAll(conn.getMemes(10, "Pokemon"));
+            } catch (IOException ignored) {}
+        });
     }
 
     @Override
-    public void onCommandRun(CommandReceivedEvent e) {
+    public void onCommandRun(CommandReceivedEvent e) throws IOException {
         if (!e.isFromGuild()) {
             e.send("Sorry, but this command cannot be used in DMs.").queue();
             return;
         }
-        StringJoiner toSend = new StringJoiner("\n");
-        TextChannel tc = (TextChannel) e.getChannel();
-        try {
-            switch (e.getArgs().size()) {
-                case 1:
-                    toSend.add(getMemeLink(tc, conn.getMeme()));
-                    break;
-                case 2:
-                    if (Strings.toInt(e.getArg(1)) < 2) {
-                        toSend.add(getMemeLink(tc, conn.getMeme(e.getArg(1))));
-                    } else {
-                        conn.getMemes(Integer.parseInt(e.getArg(1))).forEach(meme -> toSend.add(getMemeLink(tc, meme)));
-                    }
-                    break;
-                case 3:
-                    conn.getMemes(Strings.toInt(e.getArg(2)), e.getArg(1)).forEach(meme -> toSend.add(getMemeLink(tc, meme)));
-                    break;
-            }
-            e.send(toSend.toString()).queue();
-        } catch (Exception exc) {
-            exc.printStackTrace();
-            e.getChannel().sendMessage("An error occurred while getting the meme. Please try Again Later.").queue();
+        Meme meme = conn.getMeme(e.getArgs().size() == 2 ? e.getArg(1) : "");
+        if (meme.nsfw && !((TextChannel) e.getChannel()).isNSFW()) {
+            meme = randomMemes.get(new Random().nextInt(randomMemes.size()));
+        } else {
+            Optional<Meme> optional = Optional.of(meme);
+            if (randomMemes.stream().noneMatch(m -> m.url.equals(optional.get().url)))
+                randomMemes.add(meme);
         }
-    }
-
-    public static String getMemeLink(TextChannel tc, Meme meme) {
-        return (meme.nsfw && !tc.isNSFW() ? randomMemes.get(new Random().nextInt(randomMemes.size())) : meme).postLink;
+        e.send(new EmbedBuilder()
+            .setTitle(meme.title, meme.postLink)
+            .setDescription("Meme by u/" + meme.author + " in r/" + meme.subreddit)
+            .setImage(meme.url)
+            .setFooter(meme.ups + " Upvotes").build(), meme.url).queue();
     }
 }

@@ -17,10 +17,9 @@ package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.util.Strings;
-
-import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class StatCommand extends DamageAppCommand {
     public StatCommand() {
@@ -74,8 +73,7 @@ public class StatCommand extends DamageAppCommand {
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            Damage d = DATA.get(e.getAuthor().getIdLong());
-            d.setStats(targetId, statId, stat);
+            Damage d = Bot.DATA.get(e.getAuthor().getIdLong()).setStats(targetId, statId, stat);
             toSend = "Set the " + (targetId == 1 ? "target" : d.getPokemon().name) + "'s " + statName + " stat to " + stat + "!";
         }
         e.send(toSend).queue();

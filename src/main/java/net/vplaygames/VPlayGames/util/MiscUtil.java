@@ -76,43 +76,25 @@ public class MiscUtil {
     }
 
     public static int returnTypeId(String type) {
-        switch (Strings.reduceToAlphabets(type).toLowerCase()) {
-            case "Bug":
-                return 1;
-            case "Dark":
-                return 2;
-            case "Dragon":
-                return 3;
-            case "Electric":
-                return 4;
-            case "Fairy":
-                return 5;
-            case "Fighting":
-                return 6;
-            case "Fire":
-                return 7;
-            case "Flying":
-                return 8;
-            case "Ghost":
-                return 9;
-            case "Grass":
-                return 10;
-            case "Ground":
-                return 11;
-            case "Ice":
-                return 12;
-            case "Normal":
-                return 13;
-            case "Poison":
-                return 14;
-            case "Psychic":
-                return 15;
-            case "Rock":
-                return 16;
-            case "Steel":
-                return 17;
-            default:
-                return 18; // Water
+        switch (type.toLowerCase()) {
+            case "bug":      return 1;
+            case "dark":     return 2;
+            case "dragon":   return 3;
+            case "electric": return 4;
+            case "fairy":    return 5;
+            case "fighting": return 6;
+            case "fire":     return 7;
+            case "flying":   return 8;
+            case "ghost":    return 9;
+            case "grass":    return 10;
+            case "ground":   return 11;
+            case "ice":      return 12;
+            case "normal":   return 13;
+            case "poison":   return 14;
+            case "psychic":  return 15;
+            case "rock":     return 16;
+            case "steel":    return 17;
+            default:         return 18; // Water
         }
     }
 
@@ -156,10 +138,6 @@ public class MiscUtil {
             default: check = false;
         }
         return check;
-    }
-
-    public static String getMultiplierString(Damage d, Passive passive) {
-        return "+" + getMultiplier(d, passive);
     }
 
     public static double getMultiplier(Damage d, Passive passive) {

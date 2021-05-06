@@ -258,7 +258,7 @@ public class Damage {
     public String getMultiplierString() {
         return skills.stream()
             .filter(passive -> MiscUtil.isActive(this, passive.skill))
-            .map(passive -> MiscUtil.getMultiplierString(this, passive))
+            .map(passive -> "+" + MiscUtil.getMultiplier(this, passive))
             .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
             .toString();
     }

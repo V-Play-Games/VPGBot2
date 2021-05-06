@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,99 +15,99 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class StatusCommand {
-    public static void process(GuildMessageReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        if (msg.length != 3) {
-            MiscUtil.send(e, Bot.current.INVALID_INPUTS, true);
-            return;
-        }
-        String toSend = "OK! So, the target was ";
-        long aid = e.getAuthor().getIdLong();
-        PROCESS:
-        if (Bot.current.DATA.containsKey(aid)) {
-            int t;
-            switch (msg[1]) {
+import static net.vplaygames.VPlayGames.core.Damage.Status.*;
+
+public class StatusCommand extends DamageAppCommand {
+    public StatusCommand() {
+        super("status", 2);
+    }
+
+    @Override
+    public void onCommandRun(CommandReceivedEvent e) {
+        String toSend;
+        legalityCheck:
+        {
+            boolean user;
+            switch (e.getArg(1)) {
                 case "user":
                 case "u":
-                    t = 0;
+                    user = true;
                     break;
                 case "target":
                 case "t":
-                    t = 1;
+                    user = false;
                     break;
                 default:
-                    toSend = "Cannot find \"" + msg[1] + "\" entry in list \"status\"";
-                    break PROCESS;
+                    toSend = "Choose a valid option! See help for this command for more info.";
+                    break legalityCheck;
             }
-            Damage d = Bot.current.DATA.get(aid);
-            switch (msg[2]) {
+            Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
+            String statusName;
+            switch (e.getArg(2)) {
                 case "paralyzed":
                 case "paralyze":
                 case "par":
-                    d.setStatus(t, 0);
-                    toSend += "paralyzed";
+                    d.setStatus(user, PARALYZE);
+                    statusName = "paralyzed";
                     break;
                 case "asleep":
                 case "sleep":
                 case "sleeping":
                 case "slp":
-                    d.setStatus(t, 1);
-                    toSend += "sleeping";
+                    d.setStatus(user, SLEEP);
+                    statusName = "sleeping";
                     break;
                 case "poisoned":
                 case "poison":
                 case "psn":
-                    d.setStatus(t, 2);
-                    toSend += "poisoned";
-                    break;
                 case "badly-poisoned":
                 case "bdp":
                 case "tox":
-                    d.setStatus(t, 3);
-                    toSend += "badly poisoned";
+                    d.setStatus(user, POISON);
+                    statusName = "poisoned";
                     break;
                 case "burnt":
                 case "burn":
                 case "brn":
-                    d.setStatus(t, 4);
-                    toSend += "burnt";
+                    d.setStatus(user, BURN);
+                    statusName = "burnt";
                     break;
                 case "freeze":
                 case "frozen":
                 case "frz":
-                    d.setStatus(t, 5);
-                    toSend += "frozen";
+                    d.setStatus(user, FREEZE);
+                    statusName = "frozen";
                     break;
                 case "flinching":
-                case "fliched":
+                case "flinched":
                 case "flinch":
                 case "fln":
-                    d.setSStatus(t, 0);
-                    toSend += ((d.getSStatus()[t][0] == 0) ? "not " : "") + "flinched";
+                    d.setInterference(user ? 0 : 1, 0);
+                    statusName = (d.interference[user ? 0 : 1][0] == 0 ? "not " : "") + "flinched";
                     break;
                 case "confused":
                 case "confuse":
                 case "cnf":
-                    d.setSStatus(t, 1);
-                    toSend += ((d.getSStatus()[t][1] == 0) ? "not " : "") + "confused";
+                    d.setInterference(user ? 0 : 1, 1);
+                    statusName = (d.interference[user ? 0 : 1][1] == 0 ? "not " : "") + "confused";
                     break;
                 case "trapped":
                 case "trap":
                 case "trp":
-                    d.setSStatus(t, 2);
-                    toSend += ((d.getSStatus()[t][2] == 0) ? "not " : "") + "trapped";
+                    d.setInterference(user ? 0 : 1, 2);
+                    statusName = (d.interference[user ? 0 : 1][2] == 0 ? "not " : "") + "trapped";
                     break;
                 default:
-                    toSend = "That is a very weird status";
+                    toSend = "Choose a valid option! See help for this command for more info.";
+                    break legalityCheck;
             }
-        } else
-            toSend = "Create a PM Damage Calculator App first";
-        MiscUtil.send(e, toSend, true);
+            toSend = "So, " + (user ? d.pokemon.name : "the target") + " was " + statusName;
+        }
+        e.send(toSend).queue();
     }
 }

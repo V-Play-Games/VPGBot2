@@ -20,35 +20,36 @@ import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
 
-import static net.vplaygames.VPlayGames.core.Damage.Weather.*;
+import static net.vplaygames.VPlayGames.core.Damage.Terrain.*;
 
-public class WeatherCommand extends DamageAppCommand {
-    public WeatherCommand() {
-        super("weather", 1);
+public class TerrainCommand extends DamageAppCommand {
+    public TerrainCommand() {
+        super("terrain", 1);
     }
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
         Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
-        switch (e.getArg(1)) {
-            case "sunny":
-            case "sun":
-                d.setWeather(SUN);
+        switch (e.getArg(1).toLowerCase()) {
+            case "electric":
+            case "e":
+                d.setTerrain(ELECTRIC);
                 break;
-            case "rainy":
-            case "rain":
-                d.setWeather(RAIN);
+            case "psychic":
+            case "p":
+                d.setTerrain(PSYCHIC);
                 break;
-            case "sandstorm":
-                d.setWeather(SANDSTORM);
+            case "grassy":
+            case "g":
+                d.setTerrain(GRASSY);
                 break;
-            case "hail":
-            case "hailstorm":
-                d.setWeather(HAIL);
+            case "misty":
+            case "m":
+                d.setTerrain(MISTY);
                 break;
             default:
-                d.setWeather(NORMAL);
+                d.setTerrain(NORMAL);
         }
-        e.send("Ok, so " + d.weather).queue();
+        e.send(d.terrain.toString()).queue();
     }
 }

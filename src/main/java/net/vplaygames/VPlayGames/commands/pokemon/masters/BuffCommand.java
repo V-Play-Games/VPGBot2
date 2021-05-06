@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,86 +15,88 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class BuffCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        String s;
-        long aid=e.getAuthor().getIdLong();
-        if (Bot.current.DATA.containsKey(aid))
-        {
-            if(Bot.current.DATA.get(aid).getAppStatus()>1)
-            {
-                if(msg.length>=4)
-                    s=returnBuffMsg(msg[2],msg[1], Strings.toInt(msg[3]),aid);
-                else
-                    s="Not enough Inputs";
-            } else
-                s="Please choose a Sync Pair first!";
-        } else
-            s="Start a Pokemon Masters Damage Calculation Application first!";
-        MiscUtil.send(e,s,true);
+import static net.vplaygames.VPlayGames.core.Bot.DATA;
+
+public class BuffCommand extends DamageAppCommand {
+    public BuffCommand() {
+        super("buff", Damage.AppStatus.UNIT_CHOSEN, 3, 0);
     }
 
-    public static String returnBuffMsg(String m, String target, int b, long aid)
-    {
-        Damage d = Bot.current.DATA.get(aid);
-        String bff_nm;
-        int t;
-        switch (target) {
-            case "user":
-            case "u":
-                t=0;
-                break;
-            case "target":
-            case "t":
-                t=1;
-                break;
-            default:
-                return "Cannot find \""+target+"\" entry in list \"buffs\"";
+    @Override
+    public void onCommandRun(CommandReceivedEvent e) {
+        String toSend;
+        legalityCheck:
+        {
+            int targetId;
+            switch (e.getArg(1).toLowerCase()) {
+                case "user":
+                case "u":
+                    targetId = 0;
+                    break;
+                case "target":
+                case "t":
+                    targetId = 1;
+                    break;
+                default:
+                    toSend = "Choose a valid option! See help for this command for more info.";
+                    break legalityCheck;
+            }
+            int buff = Strings.toInt(e.getArg(3));
+            if (buff < -6 || buff > 6) {
+                toSend = "Invalid Stat! " + ((buff < 0) ? "" : "+") + buff + " stat buff not possible.";
+                break legalityCheck;
+            }
+            int buffId;
+            String buffName;
+            switch (String.join("", e.getArgsFrom(2)).toLowerCase()) {
+                case "atk":
+                case "attack":
+                    buffId = 0;
+                    buffName = "attack";
+                    break;
+                case "spa":
+                case "specialattack":
+                    buffId = 1;
+                    buffName = "special attack";
+                    break;
+                case "def":
+                case "defense":
+                    buffId = 2;
+                    buffName = "defense";
+                    break;
+                case "spd":
+                case "specialdefense":
+                    buffId = 3;
+                    buffName = "special defense";
+                    break;
+                case "spe":
+                case "speed":
+                    buffId = 4;
+                    buffName = "speed";
+                    break;
+                case "acc":
+                case "accuracy":
+                    buffId = 5;
+                    buffName = "accuracy";
+                    break;
+                case "eva":
+                case "evasiveness":
+                    buffId = 6;
+                    buffName = "evasiveness";
+                    break;
+                default:
+                    toSend = "Choose a valid option! See help for this command for more info.";
+                    break legalityCheck;
+            }
+            toSend = "Set the " + (targetId == 1 ? "target"
+                : DATA.get(e.getAuthor().getIdLong()).setBuffs(targetId, buffId, buff).pokemon.name)
+                + "'s " + buffName + " stat buff to " + buff + "!";
         }
-        if(b<-6||b>6)
-            return "Invalid Stat! "+((b<0)?"":"+")+b+" stat buff not possible.";
-        switch (m) {
-            case "att":
-                d.setBuffs(t,0,b);
-                bff_nm="attack";
-                break;
-            case "spa":
-                d.setBuffs(t,1,b);
-                bff_nm="special attack";
-                break;
-            case "def":
-                d.setBuffs(t,2,b);
-                bff_nm="defense";
-                break;
-            case "spd":
-                d.setBuffs(t,3,b);
-                bff_nm="special defense";
-                break;
-            case "spe":
-                d.setBuffs(t,4,b);
-                bff_nm="speed";
-                break;
-            case "acc":
-                d.setBuffs(t,5,b);
-                bff_nm="accuracy";
-                break;
-            case "eva":
-                d.setBuffs(t,6,b);
-                bff_nm="evasiveness";
-                break;
-            default:
-                return "Cannot find sub-entry \""+m+"\" in entry \""+target+"\" in list \"stats\"";
-        }
-        Bot.current.DATA.put(aid,d);
-        return "Set the "+((t==1)?"target":"**"+MiscUtil.returnSP(d.getUid())+"**")+"'s "+bff_nm+" stat buff to "+b+"!";
+        e.send(toSend).queue();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,76 +15,67 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class StatCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        String to_send;
-        int tstr;
-        long aid=e.getAuthor().getIdLong();
-        if (Bot.current.DATA.containsKey(aid))
-        {
-            if(Bot.current.DATA.get(aid).getAppStatus()>1)
-            {
-                if(msg.length>=4)
-                {
-                    tstr= Strings.toInt(msg[3]);
-                    to_send=returnStatMsg(msg[2],msg[1],tstr,aid);
-                } else
-                    to_send="Not enough inputs!";
-            } else
-                to_send="Please choose a Sync Pair first!";
-        } else
-            to_send="Start a Pokemon Masters Damage Calculation Application first!";
-        MiscUtil.send(e,to_send,true);
+public class StatCommand extends DamageAppCommand {
+    public StatCommand() {
+        super("stat", Damage.AppStatus.UNIT_CHOSEN, 3);
     }
 
-    public static String returnStatMsg(String m, String target, int s, long aid) {
-        Damage d = Bot.current.DATA.get(aid);
-        String stt_nm;
-        int t;
-        switch (target) {
-            case "user":
-            case "u":
-                t=0;
-                break;
-            case "target":
-            case "t":
-                t=1;
-                break;
-            default:
-                return "Cannot find \""+target+"\" entry in list \"stats\"";
+    @Override
+    public void onCommandRun(CommandReceivedEvent e) {
+        String toSend;
+        legalityCheck:
+        {
+            int targetId;
+            switch (e.getArg(1).toLowerCase()) {
+                case "user":
+                case "u":
+                    targetId = 0;
+                    break;
+                case "target":
+                case "t":
+                    targetId = 1;
+                    break;
+                default:
+                    toSend = "Choose a valid option! See help for this command for more info.";
+                    break legalityCheck;
+            }
+            int stat = Strings.toInt(e.getArg(3));
+            if (stat < 1) {
+                toSend = "Invalid Stat! Stat cannot be less than 1!";
+                break legalityCheck;
+            }
+            int statId;
+            String statName;
+            switch (e.getArg(2).toLowerCase()) {
+                case "atk":
+                    statId = 0;
+                    statName = "Attack";
+                    break;
+                case "spa":
+                    statId = 1;
+                    statName = "Sp. Atk";
+                    break;
+                case "def":
+                    statId = 2;
+                    statName = "Defense";
+                    break;
+                case "spd":
+                    statId = 3;
+                    statName = "Sp. Def";
+                    break;
+                default:
+                    toSend = "Choose a valid option! See help for this command for more info.";
+                    break legalityCheck;
+            }
+            Damage d = Bot.DATA.get(e.getAuthor().getIdLong()).setStats(targetId, statId, stat);
+            toSend = "Set the " + (targetId == 1 ? "target" : d.pokemon.name) + "'s " + statName + " stat to " + stat + "!";
         }
-        if(s<1)
-            return "Invalid Stat! Stat cannot be in negative!";
-        switch (m) {
-            case "att":
-                d.setStats(t,0,s);
-                stt_nm="attack";
-                break;
-            case "spa":
-                d.setStats(t,1,s);
-                stt_nm="special attack";
-                break;
-            case "def":
-                d.setStats(t,2,s);
-                stt_nm="defense";
-                break;
-            case "spd":
-                d.setStats(t,3,s);
-                stt_nm="special defense";
-                break;
-            default:
-                return "Cannot find sub-entry \""+m+"\" in entry \""+target+"\" in list \"stats\"";
-        }
-        Bot.current.DATA.put(aid,d);
-        return "Set the "+((t==1)?"target":"**"+MiscUtil.returnSP(d.getUid())+"**")+"'s "+stt_nm+" stat to "+s+"!";
+        e.send(toSend).queue();
     }
 }

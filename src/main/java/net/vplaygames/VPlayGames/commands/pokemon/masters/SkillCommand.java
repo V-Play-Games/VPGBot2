@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,44 +15,30 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.core.SkillGroup;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.Array;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Passive;
 
-import static net.vplaygames.VPlayGames.data.GameData.skillNames;
+import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
-public class SkillCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
-        String msg = e.getMessage().getContentRaw(),skill,to_send;
-        long aid = e.getAuthor().getIdLong();
-        int tstr;
-        if (Bot.current.DATA.containsKey(aid))
-        {
-            Damage d = Bot.current.DATA.get(aid);
-            if (d.getAppStatus()>3)
-            {
-                skill=msg.substring(Bot.current.PREFIX.length()+6);
-                tstr= Array.returnID(skillNames,skill.substring(0,skill.length()-(SkillGroup.isIntensive(skill)?2:0)));
-                to_send="Wait... Let me check, if there is any skill with this name.\n";
-                MiscUtil.send(e,to_send,true);
-                if (skillNames[tstr].equals("NA"))
-                    to_send="I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
-                else
-                {
-                    d.addSkill(skill);
-                    to_send="Succesfully added "+ Strings.toProperCase(skill)+" as a skill in your damage app,";
-                }
-            } else
-                to_send="Choose a move first!";
-            Bot.current.DATA.put(aid,d);
-        } else
-            to_send="To use this command, you have to open up a new Damage Calculation Application.";
-        MiscUtil.send(e,to_send,true);
+public class SkillCommand extends DamageAppCommand {
+    public SkillCommand() {
+        super("skill", Damage.AppStatus.UNIT_CHOSEN, 1, 0);
+    }
+
+    @Override
+    public void onCommandRun(CommandReceivedEvent e) {
+        String toSend;
+        Passive passive = Passive.of(String.join("", e.getArgsFrom(1)));
+        if (passive.skill == null)
+            toSend = "I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
+        else if (passive.intensity == 0 && passive.skill.intensive)
+            toSend = "There must be a number after the name of the Passive Skill.\nFor Example: Power Flux **3**";
+        else {
+            DATA.get(e.getAuthor().getIdLong()).addSkill(passive);
+            toSend = "Successfully added " + passive + " as a skill in your damage app.";
+        }
+        e.send(toSend).queue();
     }
 }

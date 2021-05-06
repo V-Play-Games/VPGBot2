@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package net.vplaygames.VPlayGames.core;
 
-import net.vplaygames.VPlayGames.PokeMasDB.Caches.Cache;
+import com.vplaygames.PM4J.caches.Cache;
 
 public class UserEmbedInfo {
     public final long uid;
@@ -37,13 +37,17 @@ public class UserEmbedInfo {
     public boolean proceed(boolean add) {
         int oldProgress = progress;
         if (add)
-            progress = (progress == limit) ? limit : progress + 1;
+            progress += (progress == limit) ? 0 : 1;
         else
-            progress = (progress == 0) ? 0 : progress - 1;
+            progress += (progress == 0) ? 0 : -1;
         return progress != oldProgress;
     }
 
     public void setProgress(int set) {
         this.progress = set;
+    }
+
+    public boolean isInRange(int set) {
+        return set == Math.min(limit, Math.max(set, 0));
     }
 }

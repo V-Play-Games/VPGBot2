@@ -18,37 +18,34 @@ package net.vplaygames.VPlayGames.commands.pokemon.masters;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Bot;
-import net.vplaygames.VPlayGames.core.Damage;
+import net.vplaygames.VPlayGames.util.Strings;
 
-import static net.vplaygames.VPlayGames.core.Damage.Weather.*;
-
-public class WeatherCommand extends DamageAppCommand {
-    public WeatherCommand() {
-        super("weather", 1);
+public class HPCommand extends DamageAppCommand {
+    public HPCommand() {
+        super("hp", 2);
     }
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
-        switch (e.getArg(1)) {
-            case "sunny":
-            case "sun":
-                d.setWeather(SUN);
-                break;
-            case "rainy":
-            case "rain":
-                d.setWeather(RAIN);
-                break;
-            case "sandstorm":
-                d.setWeather(SANDSTORM);
-                break;
-            case "hail":
-            case "hailstorm":
-                d.setWeather(HAIL);
+        String toSend;
+        int t = 0;
+        switch (e.getArg(1).toLowerCase()) {
+            case "user":
+            case "u":
+                t = -1;
+            case "target":
+            case "t":
+                t += 1;
+                int hp = Strings.toInt(e.getArg(1));
+                if (0 <= hp && hp <= 100) {
+                    Bot.DATA.get(e.getAuthor().getIdLong()).setHP(t, hp);
+                    toSend = "OK! So, the " + (t == 1 ? "target" : "user") + " was at " + hp + "% HP.";
+                } else
+                    toSend = "HP Percentage cannot be less than 0 or more than 100!";
                 break;
             default:
-                d.setWeather(NORMAL);
+                toSend = "Invalid target \"" + e.getArg(1) + "\".";
         }
-        e.send("Ok, so " + d.weather).queue();
+        e.send(toSend).queue();
     }
 }

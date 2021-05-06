@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,17 @@
  */
 package net.vplaygames.VPlayGames.commands.general;
 
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.commands.Command;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 
-public class InviteCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
-        String s="Here's the link to the bot's support server,\n"+ Bot.current.SUPPORT_SERVER_INVITE;
-        MiscUtil.send(e,s,true);
+public class InviteCommand extends Command {
+    public InviteCommand() {
+        super("invite");
+    }
+
+    @Override
+    public void onCommandRun(CommandReceivedEvent e) {
+        e.send("Here's the link to the bot's support server,\n" + Bot.SUPPORT_SERVER_INVITE).queue();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,83 +15,75 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-import static net.vplaygames.VPlayGames.data.GameData.trnrs;
-import static net.vplaygames.VPlayGames.data.GameData.types;
+public class ViewCommand extends DamageAppCommand {
+    public ViewCommand() {
+        super("view", 2);
+    }
 
-public class ViewCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        long aid=e.getAuthor().getIdLong();
-        String to_send;
-        if(Bot.current.DATA.containsKey(aid))
-        {
-            Damage d = Bot.current.DATA.get(aid);
-            if(msg.length==3)
-            {
-                String m1 = msg[1], m2 = msg[2];
-                switch (m1) {
-                    case "trainer":
-                    case "t":
-                        if (d.getAppStatus() < 1)
-                            to_send = "Choose a Trainer first!";
-                        else if (m2.equals("name"))
-                            to_send = "The chosen trainer is named " + trnrs[d.getTid()];
-                        else if (m2.equals("id"))
-                            to_send = "The chosen trainer's id is " + d.getTid();
-                        else
-                            to_send = "Cannot find entry \"" + m2 + "\" in list \"" + m1 + "\"";
+    @Override
+    public void onCommandRun(CommandReceivedEvent e) {
+        String toSend;
+        Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
+        String list = e.getArg(1), entry = e.getArg(2);
+        switch (list) {
+            case "trainer":
+            case "t":
+                if (d.appStatus.ordinal() < 1)
+                    toSend = "Choose a Trainer first!";
+                else if (entry.equals("name"))
+                    toSend = "The chosen trainer is named " + d.trainer.name;
+                else
+                    toSend = "Cannot find entry \"" + entry + "\" in list \"" + list + "\"";
+                break;
+            case "move":
+            case "m":
+                if (d.appStatus.ordinal() < 3) {
+                    toSend = "Choose a Move first!";
+                    break;
+                }
+                switch (entry) {
+                    case "name":
+                    case "n":
+                        toSend = "The current chosen move is named " + d.attack.name;
                         break;
-                    case "move":
-                    case "m":
-                        if (d.getAppStatus() < 3)
-                            to_send = "Choose a Move first!";
-                        else {
-                            switch (m2) {
-                                case "name":
-                                case "n":
-                                    to_send = "The current chosen move is named " + d.getMoveName();
-                                    break;
-                                case "info":
-                                case "i":
-                                    to_send = "Move Info:-\nBase Power: " + d.getMInfo()[0] +
-                                            "\nCategory: " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") +
-                                            "\nReach: " + ((d.getMInfo()[1] == 1) ? "All opponents" : "An opponent") +
-                                            "\nType: " + types[d.getMInfo()[3] - 1];
-                                    break;
-                                case "level":
-                                case "lvl":
-                                    to_send = (d.getSml() != 0) ? "Sync Move Level: " + d.getSml() : "Set the Sync Move Level first!";
-                                    break;
-                                case "modifier":
-                                case "mod":
-                                    to_send=((d.getMod()[0]==1)?"Critical Hit\n":"")+((d.getMod()[1]==1)?"Super-Effective\n":"");
-                                    to_send+=(to_send.isEmpty())?"None":"";
-                                    to_send="Available Modifiers:\n"+to_send;
-                                    break;
-                                default:
-                                    to_send = "Cannot find entry \"" + m2 + "\" in list \"" + m1 + "\"";
-                            }
-                        }
+                    case "info":
+                    case "i":
+                        toSend = "Move Info:-" +
+                            "\nBase Power: " + d.attack.minPower +
+                            "\nCategory: " + d.attack.category +
+                            "\nTarget: " + d.attack.target +
+                            "\nType: " + d.attack.type;
                         break;
-                    case "weather":
-                    case "w":
-                        to_send = ((d.getWthr()[0] == 1) ? "The weather was sunny" : ((d.getWthr()[1] == 1) ? "It was raining" : ((d.getWthr()[2] == 1) ? "There was a sandstorm" : ((d.getWthr()[3] == 1) ? "It was hailing" : "The weather was normal")))) + ".";
+                    case "level":
+                    case "lvl":
+                        toSend = "Sync Move Level: " + d.sml;
+                        break;
+                    case "modifier":
+                    case "mod":
+                        toSend = "Available Modifiers:"
+                            + (d.mod[0] + d.mod[1] == 0
+                            ? "\nNone" :
+                            (d.mod[0] == 1 ? "\nCritical Hit" : "")
+                                + (d.mod[1] == 1 ? "\nSuper-Effective" : ""));
                         break;
                     default:
-                        to_send = "Cannot find list \"" + m1 + "\"";
-                        break;
+                        toSend = "Cannot find entry \"" + entry + "\" in list \"" + list + "\"";
                 }
-            } else
-                to_send="Not enough inputs!";
-        } else
-            to_send="Cannot find a Pokemon Masters Damage Calculator created by "+e.getAuthor().getAsTag();
-        MiscUtil.send(e,to_send,true);
+                break;
+            case "weather":
+            case "w":
+                // First letter Capital
+                toSend = d.weather.toString().substring(0, 1).toUpperCase() + d.weather.toString().substring(1).toUpperCase() + ".";
+                break;
+            default:
+                toSend = "Cannot find list \"" + list + "\"";
+                break;
+        }
+        e.send(toSend).queue();
     }
 }

@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.commands.general;
+package net.vplaygames.VPlayGames.core;
 
-import net.vplaygames.VPlayGames.commands.Command;
-import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+public class Ratelimit {
+    public boolean informed;
+    public final long inflictedAt;
+    public final long inflictedOn;
 
-import static net.vplaygames.VPlayGames.core.Bot.jda;
-
-public class PingCommand extends Command {
-    public PingCommand() {
-        super("ping");
-    }
-
-    @Override
-    public void onCommandRun(CommandReceivedEvent e) {
-        jda.getRestPing()
-            .flatMap(ping -> e.send("Pong!\n**Response Time**: " + ping + " ms\n**Heartbeat**: " + jda.getGatewayPing() + " ms"))
-            .queue();
+    public Ratelimit(long i) {
+        informed = false;
+        inflictedAt = System.currentTimeMillis();
+        inflictedOn = i;
     }
 }

@@ -13,42 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.commands.pokemon.masters;
+package net.vplaygames.VPlayGames.commands.botStaff;
 
+import net.vplaygames.VPlayGames.commands.BotStaffCommand;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
-import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Bot;
-import net.vplaygames.VPlayGames.core.Damage;
 
-import static net.vplaygames.VPlayGames.core.Damage.Weather.*;
-
-public class WeatherCommand extends DamageAppCommand {
-    public WeatherCommand() {
-        super("weather", 1);
+public class WipeCommand extends BotStaffCommand {
+    public WipeCommand() {
+        super("wipe", 0, null, 1, 1);
     }
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
         switch (e.getArg(1)) {
-            case "sunny":
-            case "sun":
-                d.setWeather(SUN);
+            case "data":
+                Bot.DATA.clear();
                 break;
-            case "rainy":
-            case "rain":
-                d.setWeather(RAIN);
+            case "codes":
+                Bot.DAMAGE_CODES.clear();
                 break;
-            case "sandstorm":
-                d.setWeather(SANDSTORM);
+            case "all":
+                Bot.DATA.clear();
+                Bot.DAMAGE_CODES.clear();
+            case "ratelimit":
+                Bot.commands.forEach((commandName, command) -> command.getRateLimited().clear());
                 break;
-            case "hail":
-            case "hailstorm":
-                d.setWeather(HAIL);
-                break;
-            default:
-                d.setWeather(NORMAL);
         }
-        e.send("Ok, so " + d.weather).queue();
+        e.send("Data Wiped!").queue();
     }
 }

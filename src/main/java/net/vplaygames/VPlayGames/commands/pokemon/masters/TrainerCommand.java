@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,60 +15,52 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import com.vplaygames.PM4J.caches.TrainerDataCache;
+import com.vplaygames.PM4J.entities.Trainer;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.Array;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-import static net.vplaygames.VPlayGames.data.GameData.*;
+import java.util.StringJoiner;
 
-public class TrainerCommand
-{
-    public static void process(GuildMessageReceivedEvent e) {
-        String msg = e.getMessage().getContentRaw(),trnr,to_send;
-        long aid = e.getAuthor().getIdLong();
-        int tstr;
-        if (Bot.current.DATA.containsKey(aid))
-        {
-            Damage d = Bot.current.DATA.get(aid);
-            if (d.getAppStatus()==0)
-            {
-                trnr=msg.substring(Bot.current.PREFIX.length()+8);
-                tstr= Array.returnID(trnrs, trnr);
-                to_send="Wait... Let me check, if there is any trainer with this name.\n";
-                MiscUtil.send(e,to_send,true);
-                if (trnrs[tstr].equals("NA"))
-                    to_send="I cannot find any trainer with that name. Maybe this trainer is not usable in the game yet.";
-                else {
-                    to_send="Oh, you want to calculate damage for sync pairs associated with the trainer "+trnrs[tstr]+".\n\nI will show you the sync pairs including this trainer.";
-                    d.setTid((tstr==0)?1:tstr);
-                    d.updateAppStatus();
-                    to_send+=MiscUtil.returnSPs(d.getTid());
-                    d.setUc(tdabs[d.getTid()-1]);
-                    int[] uc = d.getUc();
-                    MiscUtil.send(e,to_send,true);
-                    if (uc.length==1)
-                    {
-                        int i;
-                        d.setUid(uc[0]);
-                        d.setPid(uc[0]%1000000);
-                        to_send="Oh, there is only one sync pair found."+
-                                "\nThis means you want to calculate damage for "+MiscUtil.returnSP(uc[0])+
-                                "\nChoose the move for which you want to calculate the damage:";
-                        d.setMSet(msets[d.getPid()%1000-1]);
-                        for (i=1; i<=d.getMSet().length; i++)
-                            to_send+="\n"+i+". "+moves[(d.getMSet()[i-1]-1)%1000];
-                        to_send+="\n"+i+". "+smoves[d.getPid()%1000-1]+" (Sync Move)\nGive your choice in an integer number in the range of 1-"+(d.getMSet().length+1)+"\nusing the command ``"+Bot.current.PREFIX+"choose <choice>``";
-                        d.updateAppStatus();
-                    } else
-                        to_send= "\nGive your choice in an integer number in the range of 1-"+uc.length+"\nusing the command ``"+Bot.current.PREFIX+"choose <choice>``";
-                }
-            } else
-                to_send="You have already chosen the trainer for this Damage Calculation Application.";
-            Bot.current.DATA.put(aid,d);
+public class TrainerCommand extends DamageAppCommand {
+    public TrainerCommand() {
+        super("trainer");
+    }
+
+    @Override
+    public void onCommandRun(CommandReceivedEvent e) {
+        StringJoiner toSend = new StringJoiner("\n");
+        Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
+        if (d.appStatus.ordinal() == 0) {
+            Trainer trainer = TrainerDataCache.getInstance().get(String.join("", e.getArgsFrom(1)));
+            if (trainer == null)
+                toSend.add("I cannot find any trainer with that name. Maybe this trainer is not usable in the game yet.");
+            else {
+                d.setTrainer(trainer)
+                    .incrementAppStatus();
+                toSend.add("Oh, you want to calculate damage for a Pokemon associated with the trainer " + trainer.name + ".")
+                    .add("\nI will show you the Pokemon of this trainer.");
+                for (int i = 0; i < trainer.pokemon.length; i++)
+                    toSend.add((i + 1) + ". " + trainer.pokemon[i]);
+                if (trainer.pokemonData.size() == 1) {
+                    d.setPokemon(0);
+                    toSend.add("\nOh, there is only one Pokemon found.")
+                        .add("This means you want to calculate damage for " + d.pokemon.name)
+                        .add("Choose the move for which you want to calculate the damage:");
+                    for (int i = 1; i <= d.pokemon.moves.size(); i++)
+                        toSend.add(i + ". " + d.pokemon.moves.get(i));
+                    toSend.add((d.pokemon.moves.size() + 1) + ". " + d.pokemon.syncMove.name + " (Sync Move)")
+                        .add("Give your choice in an integer number in the range of 1-" + (d.pokemon.moves.size() + 1))
+                        .add("using the command `" + Bot.PREFIX + "choose <choice>`");
+                    d.incrementAppStatus();
+                } else
+                    toSend.add("\nGive your choice in an integer number in the range of 1-" + trainer.pokemonData.size())
+                        .add("using the command `" + Bot.PREFIX + "choose <choice>`");
+            }
         } else
-            to_send="To use this command, you have to open up a new Damage Calculation Application.";
-        MiscUtil.send(e,to_send,true);
+            toSend.add("You have already chosen the trainer for this Damage Calculation Application.");
+        e.send(toSend.toString()).queue();
     }
 }

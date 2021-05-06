@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,25 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.vplaygames.VPlayGames.util.Number;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.Strings;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class GaugeCommand
-{
-    public static void process(GuildMessageReceivedEvent e)
-    {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        if (msg.length!=2)
-        {
-            MiscUtil.send(e, Bot.current.INVALID_INPUTS,true);
-            return;
-        }
-        String to_send;
-        long aid=e.getAuthor().getIdLong();
-        if(Bot.current.DATA.containsKey(aid))
-        {
-            Damage d = Bot.current.DATA.get(aid);
-            if(Number.isBetween(msg[1],1,6)) {
-                d.setGauge(Strings.toInt(msg[1]));
-                to_send="Set the gauge to "+ Strings.toInt(msg[1])+"!";
-            } else
-                to_send="Invalid Input! "+Strings.toInt(msg[1])+" Gauge Level not possible!";
-            Bot.current.DATA.put(aid,d);
+public class GaugeCommand extends DamageAppCommand {
+    public GaugeCommand() {
+        super("gauge", 1);
+    }
+
+    @Override
+    public void onCommandRun(CommandReceivedEvent e) {
+        int gauge = Strings.toInt(e.getArg(1));
+        String toSend;
+        if (0 <= gauge && gauge <= 6) {
+            Bot.DATA.get(e.getAuthor().getIdLong()).setGauge(gauge);
+            toSend = "Set the gauge to " + gauge + "!";
         } else
-            to_send="Create a PM Damage Calculator App first!";
-        MiscUtil.send(e,to_send,true);
+            toSend = "Invalid Input! " + gauge + " Move Gauges not possible!";
+        e.send(toSend).queue();
     }
 }

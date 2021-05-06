@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.commands.general;
+package net.vplaygames.VPlayGames.commands.botStaff;
 
-import net.vplaygames.VPlayGames.commands.Command;
+import net.vplaygames.VPlayGames.commands.BotStaffCommand;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 
-import static net.vplaygames.VPlayGames.core.Bot.jda;
-
-public class PingCommand extends Command {
-    public PingCommand() {
-        super("ping");
+public class DebugCommand extends BotStaffCommand {
+    public DebugCommand() {
+        super("debug");
     }
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        jda.getRestPing()
-            .flatMap(ping -> e.send("Pong!\n**Response Time**: " + ping + " ms\n**Heartbeat**: " + jda.getGatewayPing() + " ms"))
-            .queue();
+        e.send(String.valueOf(Bot.DATA.get(Long.parseLong(e.getArg(1))))).queue();
     }
 }

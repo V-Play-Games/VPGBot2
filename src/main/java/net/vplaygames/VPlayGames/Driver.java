@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,11 @@
  */
 package net.vplaygames.VPlayGames;
 
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.PokeMasDB.Caches.PokemasDBCache;
-import net.vplaygames.VPlayGames.processors.EventManager;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
+import net.vplaygames.VPlayGames.core.Bot;
 
-public class Driver
-{
-    public static void main(String[] args) throws Exception
-    {
-        JDA jda = JDABuilder.createDefault(Bot.TOKEN)
-                .addEventListeners(EventManager.getInstance())
-                .build()
-                .awaitReady();
-        new Bot(jda);
-        jda.getPresence().setActivity(Activity.watching("pokemasdb.com's data & downloading it."));
-        Thread.sleep(1000);
-        PokemasDBCache.getInstance();
-        long memberCount=0;
-        for(Guild g:jda.getGuilds())memberCount+=g.getMemberCount();
-        jda.getPresence().setActivity(Activity.playing("Damage Calculation with "+memberCount+" people in "+jda.getGuilds().size()+" servers"));
+public class Driver {
+    public static void main(String[] args) throws Exception {
+        Bot.setCustomStreams();
+        Bot.start();
     }
 }

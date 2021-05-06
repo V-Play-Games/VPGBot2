@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.commands.general;
+package net.vplaygames.VPlayGames.commands.fun;
 
 import net.vplaygames.VPlayGames.commands.Command;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 
-import static net.vplaygames.VPlayGames.core.Bot.jda;
-
-public class PingCommand extends Command {
-    public PingCommand() {
-        super("ping");
+public class ReverseCommand extends Command {
+    public ReverseCommand() {
+        super("reverse", 1, 0);
     }
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        jda.getRestPing()
-            .flatMap(ping -> e.send("Pong!\n**Response Time**: " + ping + " ms\n**Heartbeat**: " + jda.getGatewayPing() + " ms"))
-            .queue();
+        e.send(new StringBuilder(String.join(" ", e.getArgsFrom(1))).reverse().toString()).queue();
     }
 }

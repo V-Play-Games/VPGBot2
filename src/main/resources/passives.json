@@ -1,0 +1,464 @@
+[
+  {
+    "name": "Power Reserves",
+    "condition": "always",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Sync Emergency",
+    "condition": "always",
+    "checks": 0,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "HP Advantage",
+    "condition": "hp+",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "HP Trade-Off",
+    "condition": "hp-",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Bulk Buster",
+    "condition": "hp+",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Weather Surge",
+    "condition": "wtr",
+    "checks": 2,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Charging Sun",
+    "condition": "sun",
+    "checks": 2,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Raging Rain",
+    "condition": "rain",
+    "checks": 2,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Surging Sand",
+    "condition": "sand",
+    "checks": 2,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Invigorating Hail",
+    "condition": "hail",
+    "checks": 2,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Weather Sync-Up",
+    "condition": "wtr",
+    "checks": 2,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Solar Flare",
+    "condition": "sun",
+    "checks": 2,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Shower Power",
+    "condition": "rain",
+    "checks": 2,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Sand Blaster",
+    "condition": "sand",
+    "checks": 2,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Power Induction",
+    "condition": "tre",
+    "checks": 2,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Sync Induction",
+    "condition": "tre",
+    "checks": 2,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Gritty",
+    "condition": "stt",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Confusion Boon",
+    "condition": "cnf",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Dirty Fighting",
+    "condition": "stt",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Burn Synergy",
+    "condition": "brn",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Freeze Synergy",
+    "condition": "frz",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Paralysis Synergy",
+    "condition": "par",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Toxic Power",
+    "condition": "psn",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Good Night-mare",
+    "condition": "slp",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Foul Fighting",
+    "condition": "int",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Harry",
+    "condition": "fln",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Confusion Synergy",
+    "condition": "cnf",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Stationary Target",
+    "condition": "trp",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Hold Hostage",
+    "condition": "rest",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Freezer Burn",
+    "condition": "frz",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Static Shock",
+    "condition": "par",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Rude Awakening",
+    "condition": "slp",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Flinch Hitter",
+    "condition": "fln",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Fuzzy Strike",
+    "condition": "cnf",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Restrained Sync-Up",
+    "condition": "rest",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Superduper Effective",
+    "condition": "se",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Double Down",
+    "condition": "se",
+    "checks": 0,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Critical Strike",
+    "condition": "ch",
+    "checks": 0,
+    "modifies": 3,
+    "intensive": true
+  },
+  {
+    "name": "Critastrophe",
+    "condition": "ch",
+    "checks": 0,
+    "modifies": 2,
+    "intensive": true
+  },
+  {
+    "name": "Power Flux",
+    "condition": "mg",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Power Chain",
+    "condition": "ub",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": true
+  },
+  {
+    "name": "Ramming Speed",
+    "condition": "spe+",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Tough Cookie",
+    "condition": "def+",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Smart Cookie",
+    "condition": "spd+",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Bob and Weave",
+    "condition": "eva+",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Furious Brawn",
+    "condition": "atk+",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Brutal Clarity",
+    "condition": "acc+",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Furious Brain",
+    "condition": "spa+",
+    "checks": 0,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Inertia",
+    "condition": "spe+",
+    "checks": 0,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Haymaker",
+    "condition": "atk+",
+    "checks": 0,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Blind Spot",
+    "condition": "eva+",
+    "checks": 0,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Rising Tide",
+    "condition": "stat+",
+    "checks": 0,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Overpower",
+    "condition": "spa-",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Dizzying Power",
+    "condition": "acc-",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Hunter’s Instinct",
+    "condition": "spe-",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Insult to Injury",
+    "condition": "def-",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Brainteaser",
+    "condition": "spd-",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Wide Open",
+    "condition": "eva-",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Power Posture",
+    "condition": "atk-",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Power Loving",
+    "condition": "stat-",
+    "checks": 1,
+    "modifies": 1,
+    "intensive": false
+  },
+  {
+    "name": "Cakewalk",
+    "condition": "spe-",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Pecking Order",
+    "condition": "atk-",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Smarty-Pants",
+    "condition": "spd-",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Relentless",
+    "condition": "def-",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Hide and Sync",
+    "condition": "acc-",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": false
+  },
+  {
+    "name": "Devastation",
+    "condition": "spa-",
+    "checks": 1,
+    "modifies": 2,
+    "intensive": false
+  }
+]

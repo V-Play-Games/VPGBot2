@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.vplaygames.VPlayGames.util.Number;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.Strings;
-
-import static net.vplaygames.VPlayGames.data.Bot.DATA;
 
 public class GaugeCommand extends DamageAppCommand {
     public GaugeCommand() {
@@ -29,16 +26,14 @@ public class GaugeCommand extends DamageAppCommand {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        Damage d = DATA.get(e.getAuthor().getIdLong());
-        int gauge = Strings.toInt(msg[1]);
+    public void onCommandRun(CommandReceivedEvent e) {
+        int gauge = Strings.toInt(e.getArg(1));
         String toSend;
-        if (Number.isBetween(gauge, 0, 6)) {
-            d.setGauge(Strings.toInt(msg[1]));
+        if (0 <= gauge && gauge <= 6) {
+            Bot.DATA.get(e.getAuthor().getIdLong()).setGauge(gauge);
             toSend = "Set the gauge to " + gauge + "!";
         } else
             toSend = "Invalid Input! " + gauge + " Move Gauges not possible!";
-        MiscUtil.send(e, toSend, true);
+        e.send(toSend).queue();
     }
 }

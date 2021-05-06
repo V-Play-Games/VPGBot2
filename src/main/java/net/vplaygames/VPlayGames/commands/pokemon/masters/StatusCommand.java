@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.util.MiscUtil;
 
-import static net.vplaygames.VPlayGames.data.Bot.DATA;
+import static net.vplaygames.VPlayGames.core.Damage.Status.*;
 
 public class StatusCommand extends DamageAppCommand {
     public StatusCommand() {
@@ -27,90 +28,86 @@ public class StatusCommand extends DamageAppCommand {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
+    public void onCommandRun(CommandReceivedEvent e) {
         String toSend;
         legalityCheck:
         {
-            int targetId;
-            switch (msg[1]) {
+            boolean user;
+            switch (e.getArg(1)) {
                 case "user":
                 case "u":
-                    targetId = 0;
+                    user = true;
                     break;
                 case "target":
                 case "t":
-                    targetId = 1;
+                    user = false;
                     break;
                 default:
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            Damage d = DATA.get(e.getAuthor().getIdLong());
+            Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
             String statusName;
-            switch (msg[2]) {
+            switch (e.getArg(2)) {
                 case "paralyzed":
                 case "paralyze":
                 case "par":
-                    d.setStatus(targetId, 0);
+                    d.setStatus(user, PARALYZE);
                     statusName = "paralyzed";
                     break;
                 case "asleep":
                 case "sleep":
                 case "sleeping":
                 case "slp":
-                    d.setStatus(targetId, 1);
+                    d.setStatus(user, SLEEP);
                     statusName = "sleeping";
                     break;
                 case "poisoned":
                 case "poison":
                 case "psn":
-                    d.setStatus(targetId, 2);
-                    statusName = "poisoned";
-                    break;
                 case "badly-poisoned":
                 case "bdp":
                 case "tox":
-                    d.setStatus(targetId, 3);
-                    statusName = "badly poisoned";
+                    d.setStatus(user, POISON);
+                    statusName = "poisoned";
                     break;
                 case "burnt":
                 case "burn":
                 case "brn":
-                    d.setStatus(targetId, 4);
+                    d.setStatus(user, BURN);
                     statusName = "burnt";
                     break;
                 case "freeze":
                 case "frozen":
                 case "frz":
-                    d.setStatus(targetId, 5);
+                    d.setStatus(user, FREEZE);
                     statusName = "frozen";
                     break;
                 case "flinching":
-                case "fliched":
+                case "flinched":
                 case "flinch":
                 case "fln":
-                    d.setSStatus(targetId, 0);
-                    statusName = ((d.getSStatus()[targetId][0] == 0) ? "not " : "") + "flinched";
+                    d.setInterference(user ? 0 : 1, 0);
+                    statusName = (d.interference[user ? 0 : 1][0] == 0 ? "not " : "") + "flinched";
                     break;
                 case "confused":
                 case "confuse":
                 case "cnf":
-                    d.setSStatus(targetId, 1);
-                    statusName = ((d.getSStatus()[targetId][1] == 0) ? "not " : "") + "confused";
+                    d.setInterference(user ? 0 : 1, 1);
+                    statusName = (d.interference[user ? 0 : 1][1] == 0 ? "not " : "") + "confused";
                     break;
                 case "trapped":
                 case "trap":
                 case "trp":
-                    d.setSStatus(targetId, 2);
-                    statusName = ((d.getSStatus()[targetId][2] == 0) ? "not " : "") + "trapped";
+                    d.setInterference(user ? 0 : 1, 2);
+                    statusName = (d.interference[user ? 0 : 1][2] == 0 ? "not " : "") + "trapped";
                     break;
                 default:
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            toSend = "So, the target was " + statusName;
+            toSend = "So, " + (user ? d.pokemon.name : "the target") + " was " + statusName;
         }
-        MiscUtil.send(e, toSend, true);
+        e.send(toSend).queue();
     }
 }

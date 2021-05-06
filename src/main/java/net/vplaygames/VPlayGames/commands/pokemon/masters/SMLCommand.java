@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,27 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
 
-import static net.vplaygames.VPlayGames.data.Bot.DATA;
-import static net.vplaygames.VPlayGames.util.MiscUtil.returnSP;
+import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class SMLCommand extends DamageAppCommand {
     public SMLCommand() {
-        super("sml", Damage.Status.UNIT_CHOSEN, 1);
+        super("sml", Damage.AppStatus.UNIT_CHOSEN, 1);
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        int sml = Strings.toInt(e.getMessage().getContentRaw().split(" ")[1]);
-        Damage d = DATA.get(e.getAuthor().getIdLong());
+    public void onCommandRun(CommandReceivedEvent e) {
+        int sml = Strings.toInt(e.getArg(1));
         String toSend;
         if (sml < 1 || sml > 5)
-            toSend = "Invalid Sync Move Level!";
-        else {
-            d.setSml(sml);
-            toSend = "The Sync Move Level of \"" + returnSP(d.getUid()) + "\" is set to " + sml + ".";
-        }
-        MiscUtil.send(e, toSend, true);
+            toSend = "Sync Move Level " + sml + " is not possible!";
+        else
+            toSend = "The Sync Move Level of \"" + DATA.get(e.getAuthor().getIdLong())
+                .setSml(sml).pokemon.name + "\" is set to " + sml + ".";
+        e.send(toSend).queue();
     }
 }

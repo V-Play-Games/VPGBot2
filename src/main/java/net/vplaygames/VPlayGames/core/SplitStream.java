@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package net.vplaygames.VPlayGames.core;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.PrintStream;
 
 public class SplitStream extends PrintStream {
     private final PrintStream p1;
@@ -55,30 +55,13 @@ public class SplitStream extends PrintStream {
 
     @Override
     public void print(String s) {
-        p1.print(process(s));
-        p2.print(s);
+        p1.print(s.replaceAll("\n", "\r\n"));
+        p2.print(s.replaceAll("\n", "\r\n"));
     }
 
     @Override
     public void println(String x) {
-        p1.println(process(x));
-        p2.println(x);
-    }
-
-    private static String process(String s) {
-        boolean wasLastBackspace = false;
-        StringBuilder tor = new StringBuilder();
-        for (char c : s.toCharArray()) {
-            if (c == '\b') {
-                wasLastBackspace = true;
-                continue;
-            }
-            if (wasLastBackspace) {
-                tor.append("\r\n");
-                wasLastBackspace = false;
-            }
-            tor.append(c);
-        }
-        return tor.length()==0?"\r\n":tor.toString();
+        p1.println(x.replaceAll("\n", "\r\n"));
+        p2.println(x.replaceAll("\n", "\r\n"));
     }
 }

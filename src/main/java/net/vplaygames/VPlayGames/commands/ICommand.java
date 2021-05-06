@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.core;
+package net.vplaygames.VPlayGames.commands;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.core.Ratelimit;
+
+import java.util.HashMap;
 
 public interface ICommand {
-    boolean run(GuildMessageReceivedEvent e);
+    void run(CommandReceivedEvent e);
 
-    void onCommandRun(GuildMessageReceivedEvent e);
+    void onCommandRun(CommandReceivedEvent e) throws Exception;
 
-    void onRatelimit(GuildMessageReceivedEvent e);
+    void onRatelimit(CommandReceivedEvent e);
 
-    void onInsufficientArgs(GuildMessageReceivedEvent e);
+    void onInsufficientArgs(CommandReceivedEvent e);
 
-    void onAccessDenied(GuildMessageReceivedEvent e);
+    void onAccessDenied(CommandReceivedEvent e);
 
-    default void onHelpNeeded(GuildMessageReceivedEvent e) {}
+    void onHelpNeeded(CommandReceivedEvent e);
 
     boolean hasAccess(long aid);
+
+    HashMap<Long, Ratelimit> getRateLimited();
 }

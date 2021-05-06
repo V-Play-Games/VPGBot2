@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@
  */
 package net.vplaygames.VPlayGames.commands.botStaff;
 
-import com.vplaygames.PM4J.caches.PokemasDBCache;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.Driver;
-import net.vplaygames.VPlayGames.processors.EventHandler;
+import net.vplaygames.VPlayGames.commands.BotStaffCommand;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
-import static net.vplaygames.VPlayGames.data.Bot.*;
+import java.time.Instant;
+
+import static net.vplaygames.VPlayGames.core.Bot.*;
 
 public class RefreshCommand extends BotStaffCommand {
     public RefreshCommand() {
@@ -29,32 +30,29 @@ public class RefreshCommand extends BotStaffCommand {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        lightRefresh();
-        retry(PokemasDBCache.getInstance().invalidateCaches(), p -> retry(p.process(), r -> {}));
-    }
-
-    public static void lightRefresh() {
-        try {
-            System.out.println("Trying a reset!");
-            {
-                long oldBooted = booted;
-                jda.shutdownNow();
+    public void onCommandRun(CommandReceivedEvent e) {
+        e.forceNotLog();
+        e.send("Trying a reset!").queue(message -> timer.execute(() -> {
+            long startedAt = System.currentTimeMillis();
+            Instant oldInstant = instantAtBoot;
+            System.out.println("Shutting Down");
+            e.getJDA().shutdown();
+            Bot.rebootTasks = () -> {
                 rebooted = true;
-                Driver.main();
-                booted = oldBooted;
+                Bot.getJDA().getTextChannelById(e.getChannel().getIdLong())
+                    .editMessageById(message.getIdLong(),
+                        "Reset Successfully Completed! Took " + (System.currentTimeMillis() - startedAt) + "ms")
+                    .queue();
+                instantAtBoot = oldInstant;
                 lastRefresh = MiscUtil.dateTimeNow();
+            };
+            while (true) {
+                try {
+                    Bot.start();
+                    return;
+                } catch (Exception ignored) {
+                }
             }
-            System.out.println("Reset Successfully Completed!");
-        } catch (Exception exc) {
-            System.out.println("Reset Failed! Retrying in 10s!");
-            EventHandler.getInstance().process(exc);
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                System.out.println("Sleep Interrupted!");
-            }
-            lightRefresh();
-        }
+        }));
     }
 }

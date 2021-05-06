@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,11 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
+import net.vplaygames.VPlayGames.commands.Command;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.util.MiscUtil;
 
-import static net.vplaygames.VPlayGames.data.Bot.DATA;
+import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class PMCommand extends Command {
     public PMCommand() {
@@ -28,30 +27,32 @@ public class PMCommand extends Command {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String mode = e.getMessage().getContentRaw().split(" ")[1].toLowerCase();
-        long aid = e.getAuthor().getIdLong();
+    public void onCommandRun(CommandReceivedEvent e) {
         String toSend;
+        Damage d = DATA.get(e.getAuthor().getIdLong());
         boolean invalid = false;
-        if (mode.equals("start")) {
-            if (!DATA.containsKey(aid)) {
-                new Damage(e);
-                toSend = " has created a new";
-            } else
-                toSend = ", you already have an opened";
-        } else if (mode.equals("end")) {
-            if (DATA.containsKey(aid)) {
-                DATA.get(aid).remove();
-                toSend = " has deleted their";
-            } else
-                toSend = ", I can't find your";
-        } else {
-            invalid = true;
-            toSend = "Invalid Input.";
+        switch (e.getArg(1).toLowerCase()) {
+            case "start":
+                if (d == null) {
+                    new Damage(e.getAuthor().getIdLong());
+                    toSend = "have created a new";
+                } else
+                    toSend = "already have an open";
+                break;
+            case "end":
+                if (d != null) {
+                    d.remove();
+                    toSend = "have deleted your";
+                } else {
+                    invalid = true;
+                    toSend = "Your Pokemon Masters Damage Calculation Application was nowhere to be found. RIP";
+                }
+                break;
+            default:
+                invalid = true;
+                toSend = "Invalid Input.";
         }
-        if (!invalid) {
-            toSend = e.getAuthor().getAsMention() + toSend + " Pokemon Masters Damage Calculation Application";
-        }
-        MiscUtil.send(e, toSend, true);
+        e.send(invalid ? toSend : "You " + toSend + " Pokemon Masters Damage Calculation Application")
+            .mentionRepliedUser(true).queue();
     }
 }

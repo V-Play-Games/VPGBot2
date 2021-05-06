@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.util.MiscUtil;
 
-import static net.vplaygames.VPlayGames.data.Bot.DATA;
+import static net.vplaygames.VPlayGames.core.Damage.Terrain.*;
 
 public class TerrainCommand extends DamageAppCommand {
     public TerrainCommand() {
@@ -27,34 +28,28 @@ public class TerrainCommand extends DamageAppCommand {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String terrain = e.getMessage().getContentRaw().split(" ")[1];
-        String toSend;
-        Damage d = DATA.get(e.getAuthor().getIdLong());
-        switch (terrain) {
+    public void onCommandRun(CommandReceivedEvent e) {
+        Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
+        switch (e.getArg(1).toLowerCase()) {
             case "electric":
             case "e":
-                d.setTerrain(0);
-                toSend = "OK! So, the electric terrain was active.";
+                d.setTerrain(ELECTRIC);
                 break;
             case "psychic":
             case "p":
-                d.setTerrain(1);
-                toSend = "OK! So, the psychic terrain was active.";
+                d.setTerrain(PSYCHIC);
                 break;
             case "grassy":
             case "g":
-                d.setTerrain(2);
-                toSend = "OK! the grassy terrain was active.";
+                d.setTerrain(GRASSY);
                 break;
             case "misty":
             case "m":
-                d.setTerrain(3);
-                toSend = "OK! the misty terrain was active.";
+                d.setTerrain(MISTY);
                 break;
             default:
-                toSend = "Choose a valid option! See help for this command for more info.";
+                d.setTerrain(NORMAL);
         }
-        MiscUtil.send(e, toSend, true);
+        e.send(d.terrain.toString()).queue();
     }
 }

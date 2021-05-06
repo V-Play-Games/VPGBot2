@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,31 @@
  */
 package net.vplaygames.VPlayGames.commands.botStaff;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.processors.EventHandler;
-import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.commands.BotStaffCommand;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 
 public class WipeCommand extends BotStaffCommand {
     public WipeCommand() {
-        super("wipe");
+        super("wipe", 0, null, 1, 1);
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        Bot.DATA.clear();
-        Bot.DAMAGE_CODES.clear();
-        MiscUtil.send(EventHandler.getCurrent(),"All Data Wiped!",true);
+    public void onCommandRun(CommandReceivedEvent e) {
+        switch (e.getArg(1)) {
+            case "data":
+                Bot.DATA.clear();
+                break;
+            case "codes":
+                Bot.DAMAGE_CODES.clear();
+                break;
+            case "all":
+                Bot.DATA.clear();
+                Bot.DAMAGE_CODES.clear();
+            case "ratelimit":
+                Bot.commands.forEach((commandName, command) -> command.getRateLimited().clear());
+                break;
+        }
+        e.send("Data Wiped!").queue();
     }
 }

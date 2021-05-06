@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,24 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.vplaygames.VPlayGames.util.Strings;
-
-import static net.vplaygames.VPlayGames.data.Bot.DATA;
 
 public class StatCommand extends DamageAppCommand {
     public StatCommand() {
-        super("stat", Damage.Status.UNIT_CHOSEN, 3);
+        super("stat", Damage.AppStatus.UNIT_CHOSEN, 3);
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
+    public void onCommandRun(CommandReceivedEvent e) {
         String toSend;
-        Damage d = DATA.get(e.getAuthor().getIdLong());
         legalityCheck:
         {
             int targetId;
-            switch (msg[1].toLowerCase()) {
+            switch (e.getArg(1).toLowerCase()) {
                 case "user":
                 case "u":
                     targetId = 0;
@@ -48,14 +45,14 @@ public class StatCommand extends DamageAppCommand {
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            int stat = Strings.toInt(msg[3]);
+            int stat = Strings.toInt(e.getArg(3));
             if (stat < 1) {
                 toSend = "Invalid Stat! Stat cannot be less than 1!";
                 break legalityCheck;
             }
             int statId;
             String statName;
-            switch (msg[2].toLowerCase()) {
+            switch (e.getArg(2).toLowerCase()) {
                 case "atk":
                     statId = 0;
                     statName = "Attack";
@@ -66,7 +63,7 @@ public class StatCommand extends DamageAppCommand {
                     break;
                 case "def":
                     statId = 2;
-                    statName = "Defence";
+                    statName = "Defense";
                     break;
                 case "spd":
                     statId = 3;
@@ -76,9 +73,9 @@ public class StatCommand extends DamageAppCommand {
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            d.setStats(targetId, statId, stat);
-            toSend = "Set the " + ((targetId == 1) ? "target" : MiscUtil.returnSP(d.getUid())) + "'s " + statName + " stat to " + stat + "!";
+            Damage d = Bot.DATA.get(e.getAuthor().getIdLong()).setStats(targetId, statId, stat);
+            toSend = "Set the " + (targetId == 1 ? "target" : d.pokemon.name) + "'s " + statName + " stat to " + stat + "!";
         }
-        MiscUtil.send(e, toSend, true);
+        e.send(toSend).queue();
     }
 }

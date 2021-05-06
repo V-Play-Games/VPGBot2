@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.commands.general;
+package net.vplaygames.VPlayGames.commands.botStaff;
 
-import net.vplaygames.VPlayGames.commands.Command;
+import net.vplaygames.VPlayGames.commands.BotStaffCommand;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 
-import static net.vplaygames.VPlayGames.core.Bot.jda;
-
-public class PingCommand extends Command {
-    public PingCommand() {
-        super("ping");
+public class CloseCommand extends BotStaffCommand {
+    public CloseCommand() {
+        super("close");
     }
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        jda.getRestPing()
-            .flatMap(ping -> e.send("Pong!\n**Response Time**: " + ping + " ms\n**Heartbeat**: " + jda.getGatewayPing() + " ms"))
+        e.getJDA().openPrivateChannelById(Bot.BOT_OWNER)
+            .flatMap(pc -> pc.sendMessage(e.getAuthor().getAsTag() + " [" + e.getAuthor().getIdLong() + "] closed me!! ["+e.getMessage().getJumpUrl()+"]"))
+            .flatMap(m -> e.send("Successfully Closed Event Manger!"))
             .queue();
+        System.out.println(e.getAuthor().getAsTag() + " [" + e.getAuthor().getIdLong() + "] closed me!!");
+        Bot.closed = true;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.vplaygames.VPlayGames.commands.pokemon.masters;
+package net.vplaygames.VPlayGames.commands;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
-import net.vplaygames.VPlayGames.core.Damage.Status;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.core.Bot;
+import net.vplaygames.VPlayGames.core.Damage.AppStatus;
 
 import java.util.concurrent.TimeUnit;
 
 public abstract class DamageAppCommand extends Command {
-    protected Status minAppStatus;
+    protected AppStatus minAppStatus;
 
     protected DamageAppCommand(String commandName, String... aliases) {
-        this(commandName, Status.STARTED, 0, null, aliases);
+        this(commandName, AppStatus.STARTED, 0, null, aliases);
     }
 
     protected DamageAppCommand(String commandName, long cooldown, TimeUnit cooldownUnit, String... aliases) {
-        this(commandName, Status.STARTED, cooldown, cooldownUnit, 0, 0, aliases);
+        this(commandName, AppStatus.STARTED, cooldown, cooldownUnit, 0, 0, aliases);
     }
 
     protected DamageAppCommand(String commandName, int args, String... aliases) {
@@ -39,41 +36,41 @@ public abstract class DamageAppCommand extends Command {
     }
 
     protected DamageAppCommand(String commandName, int minArgs, int maxArgs, String... aliases) {
-        this(commandName, Status.STARTED, 0, null, minArgs, maxArgs, aliases);
+        this(commandName, AppStatus.STARTED, 0, null, minArgs, maxArgs, aliases);
     }
 
-    protected DamageAppCommand(String commandName, Status minAppStatus, String... aliases) {
+    protected DamageAppCommand(String commandName, AppStatus minAppStatus, String... aliases) {
         this(commandName, minAppStatus, 0, aliases);
     }
 
-    protected DamageAppCommand(String commandName, Status minAppStatus, long cooldown, TimeUnit cooldownUnit, String... aliases) {
+    protected DamageAppCommand(String commandName, AppStatus minAppStatus, long cooldown, TimeUnit cooldownUnit, String... aliases) {
         this(commandName, minAppStatus, cooldown, cooldownUnit, 0, 0, aliases);
     }
 
-    protected DamageAppCommand(String commandName, Status minAppStatus, int args, String... aliases) {
+    protected DamageAppCommand(String commandName, AppStatus minAppStatus, int args, String... aliases) {
         this(commandName, minAppStatus, args, args, aliases);
     }
 
-    protected DamageAppCommand(String commandName, Status minAppStatus, int minArgs, int maxArgs, String... aliases) {
+    protected DamageAppCommand(String commandName, AppStatus minAppStatus, int minArgs, int maxArgs, String... aliases) {
         this(commandName, minAppStatus, 0, null, minArgs, maxArgs, aliases);
     }
 
-    protected DamageAppCommand(String commandName, Status minAppStatus, long cooldown, TimeUnit cooldownUnit, int minArgs, int maxArgs, String... aliases) {
+    protected DamageAppCommand(String commandName, AppStatus minAppStatus, long cooldown, TimeUnit cooldownUnit, int minArgs, int maxArgs, String... aliases) {
         super(commandName, cooldown, cooldownUnit, minArgs, maxArgs, aliases);
         this.minAppStatus = minAppStatus;
     }
 
     @Override
-    public void onAccessDenied(GuildMessageReceivedEvent e) {
+    public void onAccessDenied(CommandReceivedEvent e) {
         if (!Bot.DATA.containsKey(e.getAuthor().getIdLong())) {
-            MiscUtil.send(e, Bot.APP_NOT_STARTED, true);
+            e.send(Bot.APP_NOT_STARTED).queue();
         } else {
-            MiscUtil.send(e, "There are some requirements to use this command, Please check the help for this command for more info", true);
+            e.send("There are some requirements to use this command, Please check the help for this command for more info").queue();
         }
     }
 
     @Override
     public boolean hasAccess(long aid) {
-        return Bot.DATA.containsKey(aid) && Bot.DATA.get(aid).getAppStatus() >= minAppStatus.ordinal();
+        return Bot.DATA.containsKey(aid) && Bot.DATA.get(aid).appStatus.ordinal() >= minAppStatus.ordinal();
     }
 }

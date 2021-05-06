@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
-import static net.vplaygames.VPlayGames.core.Damage.Status.*;
-import static net.vplaygames.VPlayGames.data.Bot.DATA;
+import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class CDCommand extends DamageAppCommand {
     public CDCommand() {
@@ -28,21 +28,27 @@ public class CDCommand extends DamageAppCommand {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
+    public void onCommandRun(CommandReceivedEvent e) {
         String toSend;
         Damage d = DATA.get(e.getAuthor().getIdLong());
-        if (d.getAppStatus() == STARTED.ordinal())
-            toSend = "Choose a Trainer first!";
-        else if (d.getAppStatus() == TRAINER_CHOSEN.ordinal())
-            toSend = "Choose a Sync Pair first!!";
-        else if (d.getAppStatus() == UNIT_CHOSEN.ordinal())
-            toSend = "Move is Missing!";
-        else if (d.getStats()[0][d.getMInfo()[2]] == 0)
-            toSend = MiscUtil.returnSP(d.getUid()) + "'s " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") + " Attack stat is Missing!";
-        else if (d.getStats()[1][d.getMInfo()[2] + 2] == 0)
-            toSend = "The target's " + ((d.getMInfo()[2] == 1) ? "Special" : "Physical") + " Defense stat is Missing!";
-        else
-            toSend = d.getDamageString();
-        MiscUtil.send(e, toSend, true);
+        switch (d.appStatus) {
+            case STARTED:
+                toSend = "Choose a Trainer first!";
+                break;
+            case TRAINER_CHOSEN:
+                toSend = "Choose a Sync Pair first!!";
+                break;
+            case UNIT_CHOSEN:
+                toSend = "Move is Missing!";
+                break;
+            default:
+                if (d.stats[0][MiscUtil.isSpecial(d.attack.category)] == 0)
+                    toSend = d.pokemon.name + "'s " + (MiscUtil.isSpecial(d.attack.category) == 1 ? "Special" : "Physical") + " Attack stat is Missing!";
+                else if (d.stats[1][MiscUtil.isSpecial(d.attack.category) + 2] == 0)
+                    toSend = "The target's " + (MiscUtil.isSpecial(d.attack.category) == 1 ? "Special" : "Physical") + " Defense stat is Missing!";
+                else
+                    toSend = d.getDamageString();
+        }
+        e.send(toSend).queue();
     }
 }

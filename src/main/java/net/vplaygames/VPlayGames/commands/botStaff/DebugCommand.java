@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package net.vplaygames.VPlayGames.commands.botStaff;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.commands.BotStaffCommand;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 
 public class DebugCommand extends BotStaffCommand {
     public DebugCommand() {
@@ -25,8 +25,7 @@ public class DebugCommand extends BotStaffCommand {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String s=String.valueOf(Bot.DATA.getOrDefault(Long.parseLong(e.getMessage().getContentRaw().split(" ")[1]),null));
-        MiscUtil.send(e,s,true);
+    public void onCommandRun(CommandReceivedEvent e) {
+        e.send(String.valueOf(Bot.DATA.get(Long.parseLong(e.getArg(1))))).queue();
     }
 }

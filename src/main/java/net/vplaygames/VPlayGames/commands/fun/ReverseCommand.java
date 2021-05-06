@@ -1,8 +1,22 @@
+/*
+ * Copyright 2020-2021 Vaibhav Nargwani
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.vplaygames.VPlayGames.commands.fun;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Command;
-import net.vplaygames.VPlayGames.util.MiscUtil;
+import net.vplaygames.VPlayGames.commands.Command;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 
 public class ReverseCommand extends Command {
     public ReverseCommand() {
@@ -10,9 +24,7 @@ public class ReverseCommand extends Command {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        String toReverse = e.getMessage().getContentRaw().substring((msg[0]+msg[1]+"  ").length());
-        MiscUtil.send(e, new StringBuilder(toReverse).reverse().toString(),true);
+    public void onCommandRun(CommandReceivedEvent e) {
+        e.send(new StringBuilder(String.join(" ", e.getArgsFrom(1))).reverse().toString()).queue();
     }
 }

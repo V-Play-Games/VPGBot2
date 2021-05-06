@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,43 +15,39 @@
  */
 package net.vplaygames.VPlayGames.commands.botStaff;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.core.Response;
-import net.vplaygames.VPlayGames.data.Bot;
+import net.vplaygames.VPlayGames.commands.BotStaffCommand;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 import net.vplaygames.VPlayGames.util.MiscUtil;
+import org.json.simple.JSONObject;
 
-import static net.vplaygames.VPlayGames.util.MiscUtil.writeDamageData;
+import java.io.File;
 
 public class RequestCommand extends BotStaffCommand {
     public RequestCommand() {
         super("request");
     }
 
+    @SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored"})
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
+    public void onCommandRun(CommandReceivedEvent e) {
         String[] msg = e.getMessage().getContentRaw().split(" ");
         switch (msg[1]) {
             case "logs":
-                for (int i = 1; i <= Bot.messagesProcessed; i++) {
-                    e.getChannel().sendMessage(Response.get(i).getAsEmbed(true)).queue();
-                }
-                MiscUtil.send(e,"Sent all requests!",true);
-                break;
-            case "errors":
-                Response.getExceptionLog().forEach((k, v) -> e.getChannel().sendMessage(v).queue());
+                JSONObject toPost = new JSONObject();
+                toPost.putAll(Bot.responses);
+                File temp = MiscUtil.makeFileOf(toPost, "logs");
+                toPost.clear();
+                e.send("Here!").addFile(temp).queue(m -> temp.delete());
                 break;
             case "logFile":
-                e.getChannel().sendMessage("logFile").addFile(Bot.logFile).queue();
+                e.send("logFile").addFile(Bot.logFile).queue();
                 break;
             case "errorFile":
-                e.getChannel().sendMessage("errorFile").addFile(Bot.errorFile).queue();
-                break;
-            case "damageData":
-                writeDamageData();
-                e.getChannel().sendMessage("damageData").addFile(Bot.damageData).queue();
+                e.send("errorFile").addFile(Bot.errorFile).queue();
                 break;
             default:
-                e.getChannel().sendMessage("Access Denied!").queue();
+                e.send("Access Denied!").queue();
         }
     }
 }

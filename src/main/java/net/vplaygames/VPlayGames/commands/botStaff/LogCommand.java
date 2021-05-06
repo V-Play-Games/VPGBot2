@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 package net.vplaygames.VPlayGames.commands.botStaff;
 
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.vplaygames.VPlayGames.data.Bot;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.vplaygames.VPlayGames.util.Strings;
+import net.vplaygames.VPlayGames.commands.BotStaffCommand;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
 
 public class LogCommand extends BotStaffCommand {
     public LogCommand() {
@@ -27,24 +26,8 @@ public class LogCommand extends BotStaffCommand {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String[] msg = e.getMessage().getContentRaw().split(" ");
-        TextChannel logChan = Bot.logChannel;
-        String[] s = {e.getAuthor().getAsMention() + " is trying to change the log channel from %s to %s"};
-        e.getJDA().retrieveUserById(Bot.BOT_OWNER).queue(u -> s[0] += ", " + u.getAsMention() + "!");
-        if (Strings.equalsAny(msg[1], "open", "close")) {
-            s[0] = String.format(s[0], logChan == null ? "null" : logChan.getAsMention(), msg[1].equals("open") ? e.getChannel().getAsMention() : "null");
-            if (logChan != null) logChan.sendMessage(s[0]).queue();
-            e.getJDA().retrieveUserById(Bot.BOT_OWNER).queue(u ->
-                u.openPrivateChannel().queue(pc ->
-                    pc.sendMessage(s[0]).queue(m ->
-                        Bot.setLogChannel(msg[1].equals("open") ? e.getChannel() : null)
-                    )
-                )
-            );
-            s[0] = "Log " + msg[1] + "ed in " + e.getChannel().getAsMention();
-        } else
-            s[0] = "Wrong syntax!\nSyntax for " + Bot.PREFIX + "log command: ``" + Bot.PREFIX + "log open/close``";
-        MiscUtil.send(e, s[0], true);
+    public void onCommandRun(CommandReceivedEvent e) {
+        Bot.setLogChannel((TextChannel) e.getChannel());
+        e.send("Log opened in " + Bot.logChannel.getAsMention()).queue();
     }
 }

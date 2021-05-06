@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,30 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.core.SkillGroup;
-import net.vplaygames.VPlayGames.util.MiscUtil;
-import net.vplaygames.VPlayGames.util.Strings;
+import net.vplaygames.VPlayGames.core.Passive;
 
-import static net.vplaygames.VPlayGames.data.Bot.DATA;
+import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class SkillCommand extends DamageAppCommand {
     public SkillCommand() {
-        super("skill", Damage.Status.UNIT_CHOSEN, 1, 0);
+        super("skill", Damage.AppStatus.UNIT_CHOSEN, 1, 0);
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        String skill = e.getMessage().getContentRaw().substring(e.getMessage().getContentRaw().split(" ")[1].length()+1);
-        String toSend = "Wait... Let me check, if there is any skill with this name.";
-        MiscUtil.send(e, toSend, true);
-        if (SkillGroup.isSkill(skill))
+    public void onCommandRun(CommandReceivedEvent e) {
+        String toSend;
+        Passive passive = Passive.of(String.join("", e.getArgsFrom(1)));
+        if (passive.skill == null)
             toSend = "I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
+        else if (passive.intensity == 0 && passive.skill.intensive)
+            toSend = "There must be a number after the name of the Passive Skill.\nFor Example: Power Flux **3**";
         else {
-            DATA.get(e.getAuthor().getIdLong()).addSkill(skill);
-            toSend = "Successfully added " + Strings.toProperCase(skill) + " as a skill in your damage app.";
+            DATA.get(e.getAuthor().getIdLong()).addSkill(passive);
+            toSend = "Successfully added " + passive + " as a skill in your damage app.";
         }
-        MiscUtil.send(e, toSend, true);
+        e.send(toSend).queue();
     }
 }

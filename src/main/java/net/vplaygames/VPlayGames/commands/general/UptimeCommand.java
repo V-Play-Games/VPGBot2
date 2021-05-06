@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Vaibhav Nargwani
+ * Copyright 2020-2021 Vaibhav Nargwani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,11 @@
  */
 package net.vplaygames.VPlayGames.commands.general;
 
-import net.vplaygames.VPlayGames.core.Command;
-import net.vplaygames.VPlayGames.core.Response;
-import net.vplaygames.VPlayGames.util.MiscUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-
-import java.util.StringJoiner;
-
-import static net.vplaygames.VPlayGames.data.Bot.*;
+import net.vplaygames.VPlayGames.commands.Command;
+import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Bot;
+import net.vplaygames.VPlayGames.util.MiscUtil;
 
 public class UptimeCommand extends Command {
     public UptimeCommand() {
@@ -31,18 +27,11 @@ public class UptimeCommand extends Command {
     }
 
     @Override
-    public void onCommandRun(GuildMessageReceivedEvent e) {
-        EmbedBuilder eb = new EmbedBuilder();
-        String[] uptimeArr = MiscUtil.msToString(System.currentTimeMillis() - booted).split(" ");
-        StringJoiner var0 = new StringJoiner(" ");
-        for (int i = 0; i < uptimeArr.length - 1; i++) {
-            var0.add(uptimeArr[i]);
-        }
-        eb.addField("Uptime", var0 + " (" + (System.currentTimeMillis() - booted) + " ms)", false);
-        var0 = new StringJoiner("",isStaff(e.getAuthor().getIdLong()) ? "\nLast refresh: " + lastRefresh : "","");
-        eb.setFooter("Bot booted " + timeAtBoot + var0);
-        eb.setColor(0x1abc9c);
-        e.getChannel().sendMessage(eb.build()).queue();
-        Response.get(messagesProcessed).responded("Bot Uptime");
+    public void onCommandRun(CommandReceivedEvent e) {
+        e.send(new EmbedBuilder()
+            .addField("Uptime", MiscUtil.msToString(System.currentTimeMillis() - Bot.instantAtBoot.toEpochMilli()) + " (" + (System.currentTimeMillis() - Bot.instantAtBoot.toEpochMilli()) + " ms)", false)
+            .setFooter((Bot.isStaff(e.getAuthor().getIdLong()) ? "Last refresh: " + Bot.lastRefresh + "\n" : "") + "Last boot ")
+            .setTimestamp(Bot.instantAtBoot)
+            .setColor(0x1abc9c).build(), Bot.instantAtBoot.toString()).queue();
     }
 }

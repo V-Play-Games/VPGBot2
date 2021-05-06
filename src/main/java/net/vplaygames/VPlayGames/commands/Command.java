@@ -15,8 +15,8 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
-import net.vplaygames.VPlayGames.core.Ratelimit;
 import net.vplaygames.VPlayGames.core.Bot;
+import net.vplaygames.VPlayGames.core.Ratelimit;
 import net.vplaygames.VPlayGames.util.MiscUtil;
 
 import java.util.HashMap;
@@ -73,7 +73,7 @@ public abstract class Command implements ICommand {
             if (!hasAccess(e.getAuthor().getIdLong())) {
                 onAccessDenied(e);
             } else {
-                int args = e.getArgs().size() - 1;
+                int args = e.args.size() - 1;
                 if (minArgs > args || args > (maxArgs <= 0 ? args : maxArgs)) {
                     onInsufficientArgs(e);
                 } else {

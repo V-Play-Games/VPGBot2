@@ -15,9 +15,9 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.Command;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Damage;
 
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
 

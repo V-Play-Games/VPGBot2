@@ -93,8 +93,9 @@ public class BuffCommand extends DamageAppCommand {
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            toSend = "Set the " + (targetId == 1 ? "target" : DATA.get(e.getAuthor().getIdLong()).setBuffs(targetId, buffId, buff)
-                .getPokemon().name) + "'s " + buffName + " stat buff to " + buff + "!";
+            toSend = "Set the " + (targetId == 1 ? "target"
+                : DATA.get(e.getAuthor().getIdLong()).setBuffs(targetId, buffId, buff).pokemon.name)
+                + "'s " + buffName + " stat buff to " + buff + "!";
         }
         e.send(toSend).queue();
     }

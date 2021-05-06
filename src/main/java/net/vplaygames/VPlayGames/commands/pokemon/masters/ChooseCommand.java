@@ -33,38 +33,38 @@ public class ChooseCommand extends DamageAppCommand {
         StringJoiner toSend = new StringJoiner("\n");
         Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
         int temp = Strings.toInt(e.getArg(1)) - 1;
-        switch (d.getAppStatus()) {
+        switch (d.appStatus) {
             case TRAINER_CHOSEN:
-                if (temp < 0 || temp >= d.getTrainer().pokemonData.size())
+                if (temp < 0 || temp >= d.trainer.pokemonData.size())
                     toSend.add("Invalid Input. There is no pokemon at that place.");
                 else {
                     d.setPokemon(temp);
-                    toSend.add("This means you want to calculate damage for " + d.getPokemon().name)
+                    toSend.add("This means you want to calculate damage for " + d.pokemon.name)
                         .add("Choose the move for which you want to calculate the damage:");
-                    for (int i = 0; i < d.getPokemon().moves.size(); i++)
-                        toSend.add((i+1) + ". " + d.getPokemon().moves.get(i).name);
-                    toSend.add((d.getPokemon().moves.size()+1) + ". " + d.getPokemon().syncMove.name + " (Sync Move)")
-                        .add("Give your choice in an integer number in the range of 1-" + (d.getPokemon().moves.size() + 1))
+                    for (int i = 0; i < d.pokemon.moves.size(); i++)
+                        toSend.add((i+1) + ". " + d.pokemon.moves.get(i).name);
+                    toSend.add((d.pokemon.moves.size()+1) + ". " + d.pokemon.syncMove.name + " (Sync Move)")
+                        .add("Give your choice in an integer number in the range of 1-" + (d.pokemon.moves.size() + 1))
                         .add("using the command `" + Bot.PREFIX + "choose <choice>`");
                     d.incrementAppStatus();
                 }
                 break;
             case UNIT_CHOSEN:
-                if (temp < 0 || temp > d.getPokemon().moves.size())
+                if (temp < 0 || temp > d.pokemon.moves.size())
                     toSend.add("Invalid Input. There is no move at that place.");
                 else {
                     d.setAttack(temp);
-                    if (d.getAttack().minPower==0)
-                        toSend.add("Choose a damaging attack! \"" + d.getAttack().name + "\" is not a damaging attack.");
+                    if (d.attack.minPower==0)
+                        toSend.add("Choose a damaging attack! \"" + d.attack.name + "\" is not a damaging attack.");
                     else {
-                        toSend.add("You chose " + d.getAttack().name + ".")
+                        toSend.add("You chose " + d.attack.name + ".")
                             .add("\nMove Info:-")
-                            .add("Base Power: " + d.getAttack().minPower)
-                            .add("Category: " + d.getAttack().category)
-                            .add("Target: " + d.getAttack().target)
-                            .add("Type: " + d.getAttack().type)
+                            .add("Base Power: " + d.attack.minPower)
+                            .add("Category: " + d.attack.category)
+                            .add("Target: " + d.attack.target)
+                            .add("Type: " + d.attack.type)
                             .add("\nUse `" + Bot.PREFIX + "view move info` to view this info again.");
-                        if (d.getAttack().target.equalsIgnoreCase("All Opponents"))
+                        if (d.attack.target.equalsIgnoreCase("All Opponents"))
                             toSend.add("\nThis move can affect more than 1 targets.")
                                 .add("How many targets were on the field when the move was used?")
                                 .add("Give your choice in an integer number in the range of 1-3")

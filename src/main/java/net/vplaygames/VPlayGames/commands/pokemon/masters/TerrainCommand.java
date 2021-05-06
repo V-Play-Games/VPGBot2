@@ -50,6 +50,6 @@ public class TerrainCommand extends DamageAppCommand {
             default:
                 d.setTerrain(NORMAL);
         }
-        e.send(d.getTerrain().toString()).queue();
+        e.send(d.terrain.toString()).queue();
     }
 }

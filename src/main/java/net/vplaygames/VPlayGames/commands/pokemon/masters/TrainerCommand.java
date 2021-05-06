@@ -33,7 +33,7 @@ public class TrainerCommand extends DamageAppCommand {
     public void onCommandRun(CommandReceivedEvent e) {
         StringJoiner toSend = new StringJoiner("\n");
         Damage d = Bot.DATA.get(e.getAuthor().getIdLong());
-        if (d.getAppStatusAsInt() == 0) {
+        if (d.appStatus.ordinal() == 0) {
             Trainer trainer = TrainerDataCache.getInstance().get(String.join("", e.getArgsFrom(1)));
             if (trainer == null)
                 toSend.add("I cannot find any trainer with that name. Maybe this trainer is not usable in the game yet.");
@@ -47,12 +47,12 @@ public class TrainerCommand extends DamageAppCommand {
                 if (trainer.pokemonData.size() == 1) {
                     d.setPokemon(0);
                     toSend.add("\nOh, there is only one Pokemon found.")
-                        .add("This means you want to calculate damage for " + d.getPokemon().name)
+                        .add("This means you want to calculate damage for " + d.pokemon.name)
                         .add("Choose the move for which you want to calculate the damage:");
-                    for (int i = 1; i <= d.getPokemon().moves.size(); i++)
-                        toSend.add(i + ". " + d.getPokemon().moves.get(i));
-                    toSend.add((d.getPokemon().moves.size() + 1) + ". " + d.getPokemon().syncMove.name + " (Sync Move)")
-                        .add("Give your choice in an integer number in the range of 1-" + (d.getPokemon().moves.size() + 1))
+                    for (int i = 1; i <= d.pokemon.moves.size(); i++)
+                        toSend.add(i + ". " + d.pokemon.moves.get(i));
+                    toSend.add((d.pokemon.moves.size() + 1) + ". " + d.pokemon.syncMove.name + " (Sync Move)")
+                        .add("Give your choice in an integer number in the range of 1-" + (d.pokemon.moves.size() + 1))
                         .add("using the command `" + Bot.PREFIX + "choose <choice>`");
                     d.incrementAppStatus();
                 } else

@@ -74,7 +74,7 @@ public class StatCommand extends DamageAppCommand {
                     break legalityCheck;
             }
             Damage d = Bot.DATA.get(e.getAuthor().getIdLong()).setStats(targetId, statId, stat);
-            toSend = "Set the " + (targetId == 1 ? "target" : d.getPokemon().name) + "'s " + statName + " stat to " + stat + "!";
+            toSend = "Set the " + (targetId == 1 ? "target" : d.pokemon.name) + "'s " + statName + " stat to " + stat + "!";
         }
         e.send(toSend).queue();
     }

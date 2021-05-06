@@ -15,22 +15,19 @@
  */
 package net.vplaygames.VPlayGames.commands.botStaff;
 
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.vplaygames.VPlayGames.commands.BotStaffCommand;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.core.Bot;
 
-public class TerminateCommand extends BotStaffCommand {
-    public TerminateCommand() {
-        super("terminate");
+public class LogCommand extends BotStaffCommand {
+    public LogCommand() {
+        super("log");
     }
 
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
-        e.getJDA().openPrivateChannelById(Bot.BOT_OWNER)
-            .flatMap(pc -> pc.sendMessage(e.getAuthor().getAsTag() + " [" + e.getAuthor().getIdLong() + "] closed me!!"))
-            .flatMap(m -> e.getChannel().sendMessage("Successfully Closed Event Manger!"))
-            .queue();
-        System.out.println(e.getAuthor().getAsTag() + " [" + e.getAuthor().getIdLong() + "] closed me!!");
-        Bot.closed = true;
+        Bot.setLogChannel((TextChannel) e.getChannel());
+        e.send("Log opened in " + Bot.logChannel.getAsMention()).queue();
     }
 }

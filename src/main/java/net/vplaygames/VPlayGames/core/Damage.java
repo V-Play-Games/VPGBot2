@@ -24,59 +24,41 @@ import net.vplaygames.VPlayGames.util.MiscUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringJoiner;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.round;
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
 public class Damage {
-    boolean enabled;
-    int sml;
-    int gauge;
-    long damage;
-    long userId;
-    int[] mod;
-    int[] hp;
-    int[][] stats;
-    int[][] buffs;
-    int[][] interference;
-    String damageCode;
-    String damageString;
-    AppStatus appStatus;
-    Trainer trainer;
-    Pokemon pokemon;
-    Attack attack;
-    Weather weather;
-    Terrain terrain;
-    Status enemyStatus;
-    Status userStatus;
-    ArrayList<SkillGroup> skills;
+    public boolean enabled = false;
+    public int sml = 5;
+    public int gauge = 6;
+    public long damage;
+    public long userId;
+    public int[] mod = {0, 0, 1, 0};
+    public int[] hp = {0, 0};
+    public int[][] stats = {{0, 0, 0, 0}, {0, 0, 0, 0}};
+    public int[][] buffs = {{0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}};
+    public int[][] interference = {{0, 0, 0}, {0, 0, 0}};
+    public String damageCode;
+    public String damageString;
+    public AppStatus appStatus = AppStatus.of(0);
+    public Trainer trainer;
+    public Pokemon pokemon;
+    public Attack attack;
+    public Weather weather = Weather.NORMAL;
+    public Terrain terrain = Terrain.NORMAL;
+    public Status enemyStatus = Status.NORMAL;
+    public Status userStatus = Status.NORMAL;
+    public ArrayList<Passive> skills = new ArrayList<>();
 
     public Damage(long userId) {
         this(userId, generateValid());
     }
 
     public Damage(long uId, String code) {
-        enabled = false;
         userId = uId;
-        sml = 1;
-        appStatus = AppStatus.of(0);
-        gauge = 0;
-        hp = new int[]{0, 0};
-        mod = new int[]{0, 0, 0, 0};
-        weather = Weather.NORMAL;
-        terrain = Terrain.NORMAL;
-        enemyStatus = userStatus = Status.NORMAL;
-        interference = new int[][]{{0, 0, 0}, {0, 0, 0}};
-        stats = new int[][]{{0, 0, 0, 0}, {0, 0, 0, 0}};
-        buffs = new int[][]{{0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}};
-        mod[2] = 1;
         damageCode = code;
-        skills = new ArrayList<>();
-        damage = 0;
-        damageString = "0";
         Bot.DATA.put(userId, this);
     }
 
@@ -147,18 +129,15 @@ public class Damage {
     }
 
     public Damage setAttack(Move set) {
-        attack = new Attack(set);
-        return this;
+        return setAttack(new Attack(set));
     }
 
     public Damage setAttack(SyncMove set) {
-        attack = new Attack(set);
-        return this;
+        return setAttack(new Attack(set));
     }
 
     public Damage setAttack(int set) {
-        attack = pokemon.moves.size() == set ? new Attack(pokemon.syncMove) : new Attack(pokemon.moves.get(set));
-        return this;
+        return pokemon.moves.size() == set ? setAttack(pokemon.syncMove) : setAttack(pokemon.moves.get(set));
     }
 
     public Damage setSml(int set) {
@@ -216,90 +195,17 @@ public class Damage {
 
     public Damage setHP(int target, int set) {
         hp[target] = set;
-
         return this;
     }
 
-    public Damage addSkill(PassiveSkill skill, int intensity) {
-        skills.add(new SkillGroup(skill, intensity));
+    public Damage addSkill(Passive passive) {
+        skills.add(passive);
         return this;
     }
 
     // Getters
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public long getUserId() {
-        return userId;
-    }
-
-    public int getAppStatusAsInt() {
-        return appStatus.ordinal();
-    }
-
-    public AppStatus getAppStatus() {
-        return appStatus;
-    }
-
-    public Trainer getTrainer() {
-        return trainer;
-    }
-
-    public Pokemon getPokemon() {
-        return pokemon;
-    }
-
-    public Attack getAttack() {
-        return attack;
-    }
-
-    public int getSml() {
-        return sml;
-    }
-
-    public int getGauge() {
-        return gauge;
-    }
-
-    public String getCode() {
-        return damageCode;
-    }
-
-    public int[] getMod() {
-        return mod;
-    }
-
-    public Weather getWeather() {
-        return weather;
-    }
-
-    public Terrain getTerrain() {
-        return terrain;
-    }
-
-    public int[] getHP() {
-        return hp;
-    }
-
     public Status getStatus(boolean u) {
         return u ? userStatus : enemyStatus;
-    }
-
-    public int[][] getInterference() {
-        return interference;
-    }
-
-    public int[][] getStats() {
-        return stats;
-    }
-
-    public int[][] getBuffs() {
-        return buffs;
-    }
-
-    public ArrayList<SkillGroup> getSkills() {
-        return skills;
     }
 
     public void refresh() {
@@ -340,25 +246,28 @@ public class Damage {
     }
 
     public String getPassiveString() {
-        Stream<SkillGroup> stream = skills.stream().filter(sg -> sg.isActive(this));
-        if (stream.count()==0) return "";
-        StringJoiner tor = new StringJoiner("\n").add("Skills affecting the damage:-");
-        AtomicInteger i = new AtomicInteger(1);
-        stream.forEach(sg -> tor.add(i.getAndIncrement() + ". " + sg.getPassiveString()));
-        return tor.toString();
+        return skills.stream()
+            .filter(passive -> MiscUtil.isActive(this, passive.skill))
+            .map(Passive::toString)
+            .sorted()
+            .collect(() -> new StringJoiner("\n", "Skills affecting the damage:-\n", "").setEmptyValue(""),
+                StringJoiner::add, StringJoiner::merge)
+            .toString();
     }
 
     public String getMultiplierString() {
         return skills.stream()
-            .filter(sg -> sg.isActive(this))
-            .collect(StringBuilder::new,
-                (stringBuilder, skillGroup) -> stringBuilder.append(skillGroup.getMultiplierString()),
-                StringBuilder::append)
+            .filter(passive -> MiscUtil.isActive(this, passive.skill))
+            .map(passive -> MiscUtil.getMultiplierString(this, passive))
+            .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
             .toString();
     }
 
     public double getPassiveMultiplier() {
-        return skills.stream().filter(sg -> sg.isActive(this)).mapToDouble(SkillGroup::getMultiplier).sum();
+        return skills.stream()
+            .filter(passive -> MiscUtil.isActive(this, passive.skill))
+            .mapToDouble(passive -> MiscUtil.getMultiplier(this, passive))
+            .sum();
     }
 
     public long getDamage() {
@@ -399,9 +308,9 @@ public class Damage {
     public String toString() {
         return "Damage{" +
             "enabled=" + enabled +
-            (trainer == null ? "" :", trainer=" +  trainer.name) +
-            (pokemon == null ? "" :", pokemon=" +  pokemon.name) +
-            (attack == null ? "" :", attack=" +  attack.name) +
+            (trainer == null ? "" : ", trainer=" + trainer.name) +
+            (pokemon == null ? "" : ", pokemon=" + pokemon.name) +
+            (attack == null ? "" : ", attack=" + attack.name) +
             ", sml=" + sml +
             ", appStatus=" + appStatus +
             ", gauge=" + gauge +
@@ -481,7 +390,7 @@ public class Damage {
 
         @Override
         public String toString() {
-            return (this.equals(NORMAL) ? "no" : "the" + name().toLowerCase())+" terrain was active";
+            return (this.equals(NORMAL) ? "no" : "the" + name().toLowerCase()) + " terrain was active";
         }
     }
 }

@@ -15,8 +15,8 @@
  */
 package net.vplaygames.VPlayGames.commands;
 
-import net.vplaygames.VPlayGames.core.Damage.AppStatus;
 import net.vplaygames.VPlayGames.core.Bot;
+import net.vplaygames.VPlayGames.core.Damage.AppStatus;
 
 import java.util.concurrent.TimeUnit;
 
@@ -71,6 +71,6 @@ public abstract class DamageAppCommand extends Command {
 
     @Override
     public boolean hasAccess(long aid) {
-        return Bot.DATA.containsKey(aid) && Bot.DATA.get(aid).getAppStatusAsInt() >= minAppStatus.ordinal();
+        return Bot.DATA.containsKey(aid) && Bot.DATA.get(aid).appStatus.ordinal() >= minAppStatus.ordinal();
     }
 }

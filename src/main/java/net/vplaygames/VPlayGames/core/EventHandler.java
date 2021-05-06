@@ -73,7 +73,11 @@ public class EventHandler extends ListenerAdapter {
     @Override
     public void onReady(@Nonnull ReadyEvent e) {
         Bot.jda = e.getJDA();
-        Bot.init();
+        try {
+            Bot.init();
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        }
     }
 
     public static void BotPingedEvent(GuildMessageReceivedEvent e) {
@@ -83,7 +87,7 @@ public class EventHandler extends ListenerAdapter {
             .addField("Developer", "<@" + Bot.BOT_OWNER + ">", true)
             .addField("Version", Bot.VERSION, true)
             .addField("Server Count", String.valueOf(e.getJDA().getGuilds().size()), false)
-            .setFooter("Bot Pinged at ")
+            .setFooter("Bot Mentioned at ")
             .setTimestamp(Instant.now())
             .setThumbnail(e.getJDA().getSelfUser().getAvatarUrl())
             .setColor(0x1abc9c)

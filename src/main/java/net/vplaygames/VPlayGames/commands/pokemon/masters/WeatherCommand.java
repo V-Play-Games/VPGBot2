@@ -49,6 +49,6 @@ public class WeatherCommand extends DamageAppCommand {
             default:
                 d.setWeather(NORMAL);
         }
-        e.send("Ok, so " + d.getWeather()).queue();
+        e.send("Ok, so " + d.weather).queue();
     }
 }

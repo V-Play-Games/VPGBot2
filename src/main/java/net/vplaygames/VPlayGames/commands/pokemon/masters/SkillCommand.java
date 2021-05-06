@@ -18,8 +18,7 @@ package net.vplaygames.VPlayGames.commands.pokemon.masters;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
 import net.vplaygames.VPlayGames.core.Damage;
-import net.vplaygames.VPlayGames.core.PassiveSkill;
-import net.vplaygames.VPlayGames.util.Strings;
+import net.vplaygames.VPlayGames.core.Passive;
 
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
@@ -31,14 +30,14 @@ public class SkillCommand extends DamageAppCommand {
     @Override
     public void onCommandRun(CommandReceivedEvent e) {
         String toSend;
-        String arg = e.getArgsFrom(1).toString();
-        PassiveSkill skill = PassiveSkill.get(arg);
-        if (skill == null)
+        Passive passive = Passive.of(String.join("", e.getArgsFrom(1)));
+        if (passive.skill == null)
             toSend = "I cannot find any skill with that name. Maybe this skill isn't added in the bot yet.";
+        else if (passive.intensity == 0 && passive.skill.intensive)
+            toSend = "There must be a number after the name of the Passive Skill.\nFor Example: Power Flux **3**";
         else {
-            int intensity = Strings.toInt(arg);
-            DATA.get(e.getAuthor().getIdLong()).addSkill(skill, intensity);
-            toSend = "Successfully added " + skill.name + (skill.intensive ? " " + intensity : "") + " as a skill in your damage app.";
+            DATA.get(e.getAuthor().getIdLong()).addSkill(passive);
+            toSend = "Successfully added " + passive + " as a skill in your damage app.";
         }
         e.send(toSend).queue();
     }

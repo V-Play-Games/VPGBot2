@@ -34,8 +34,8 @@ public class SMLCommand extends DamageAppCommand {
         if (sml < 1 || sml > 5)
             toSend = "Sync Move Level " + sml + " is not possible!";
         else
-            toSend = "The Sync Move Level of \"" + DATA.get(e.getAuthor().getIdLong()).setSml(sml)
-                .getPokemon().name + "\" is set to " + sml + ".";
+            toSend = "The Sync Move Level of \"" + DATA.get(e.getAuthor().getIdLong())
+                .setSml(sml).pokemon.name + "\" is set to " + sml + ".";
         e.send(toSend).queue();
     }
 }

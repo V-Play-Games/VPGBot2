@@ -19,48 +19,78 @@ import com.vplaygames.PM4J.caches.Cache;
 import com.vplaygames.PM4J.exceptions.ParseException;
 import com.vplaygames.PM4J.json.ParsableJSONObject;
 import com.vplaygames.PM4J.util.MiscUtil;
-import net.vplaygames.VPlayGames.util.Strings;
 import org.json.simple.JSONObject;
 
-public class PassiveSkill implements ParsableJSONObject {
-    public final String name;
-    public final String condition;
-    public final boolean intensive;
-    public final int checks;
-    public final int modifies;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-    public PassiveSkill(String name, String condition, boolean intensive, int checks, int modifies) {
-        this.name = name;
-        this.condition = condition;
-        this.intensive = intensive;
-        this.checks = checks;
-        this.modifies = modifies;
-        Data.instance.put(name, this);
+public  class Passive {
+    static Pattern digits = Pattern.compile("\\d+");
+    static Pattern noDigits = Pattern.compile("\\D+");
+    public final Skill skill;
+    public final int intensity;
+
+    public Passive(Skill skill, int intensity) {
+        this.skill = skill;
+        this.intensity = intensity;
     }
 
     @Override
-    public String getAsJSON() {
-        return "{\"condition\":\"" + condition + "\", \"intensive\":" + intensive + ", \"checks\":" + checks + ", \"modifies\":" + modifies + "}";
+    public String toString() {
+        return skill.name + (skill.intensive ? " " + intensity : "");
     }
 
-    public static PassiveSkill parse(String JSON) throws ParseException {
-        return parse(MiscUtil.parseJSONObject(JSON));
+    public static Passive of(String s) {
+        int intensity = 0;
+        try {
+            Matcher digits = Passive.digits.matcher(s);
+            digits.find();
+            intensity = Integer.parseInt(s.substring(digits.start(), digits.end()));
+        } catch (Exception ignored) {
+        }
+        Matcher noDigits = Passive.noDigits.matcher(s);
+        noDigits.find();
+        Skill skill = Skill.get(s.substring(noDigits.start(), noDigits.end()));
+        return new Passive(skill, intensity);
     }
 
-    public static PassiveSkill parse(JSONObject jo) {
-        String name = (String) jo.get("name");
-        String condition = (String) jo.get("condition");
-        boolean intensive = (boolean) jo.get("intensive");
-        int modifies = MiscUtil.objectToInt(jo.get("modifies"));
-        int checks = MiscUtil.objectToInt(jo.get("checks"));
-        return new PassiveSkill(name, condition, intensive, checks, modifies);
-    }
+    public static class Skill implements ParsableJSONObject {
+        public static Cache<Skill> passives = new Cache<>();
+        public final String name;
+        public final String condition;
+        public final boolean intensive;
+        public final int checks;
+        public final int modifies;
 
-    public static PassiveSkill get(String skill) {
-        return Data.instance.get(Strings.reduceToAlphabets(skill));
-    }
+        public Skill(String name, String condition, boolean intensive, int checks, int modifies) {
+            this.name = name;
+            this.condition = condition;
+            this.intensive = intensive;
+            this.checks = checks;
+            this.modifies = modifies;
+            passives.put(name, this);
+        }
 
-    public static class Data extends Cache<PassiveSkill> {
-        public static Data instance = new Data();
+        @Override
+        public String getAsJSON() {
+            return "{\"condition\":\"" + condition + "\", \"intensive\":" + intensive + ", \"checks\":" + checks + ", \"modifies\":" + modifies + "}";
+        }
+
+        public static Skill parse(String JSON) throws ParseException {
+            return parse(MiscUtil.parseJSONObject(JSON));
+        }
+
+        public static Skill parse(JSONObject jo) {
+            String name = (String) jo.get("name");
+            String condition = (String) jo.get("condition");
+            boolean intensive = (boolean) jo.get("intensive");
+            int modifies = MiscUtil.objectToInt(jo.get("modifies"));
+            int checks = MiscUtil.objectToInt(jo.get("checks"));
+            return new Skill(name, condition, intensive, checks, modifies);
+        }
+
+        public static Skill get(String skill) {
+            return passives.get(skill);
+        }
     }
 }

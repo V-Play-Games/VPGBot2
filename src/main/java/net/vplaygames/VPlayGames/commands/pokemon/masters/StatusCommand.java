@@ -88,25 +88,25 @@ public class StatusCommand extends DamageAppCommand {
                 case "flinch":
                 case "fln":
                     d.setInterference(user ? 0 : 1, 0);
-                    statusName = (d.getInterference()[user ? 0 : 1][0] == 0 ? "not " : "") + "flinched";
+                    statusName = (d.interference[user ? 0 : 1][0] == 0 ? "not " : "") + "flinched";
                     break;
                 case "confused":
                 case "confuse":
                 case "cnf":
                     d.setInterference(user ? 0 : 1, 1);
-                    statusName = (d.getInterference()[user ? 0 : 1][1] == 0 ? "not " : "") + "confused";
+                    statusName = (d.interference[user ? 0 : 1][1] == 0 ? "not " : "") + "confused";
                     break;
                 case "trapped":
                 case "trap":
                 case "trp":
                     d.setInterference(user ? 0 : 1, 2);
-                    statusName = (d.getInterference()[user ? 0 : 1][2] == 0 ? "not " : "") + "trapped";
+                    statusName = (d.interference[user ? 0 : 1][2] == 0 ? "not " : "") + "trapped";
                     break;
                 default:
                     toSend = "Choose a valid option! See help for this command for more info.";
                     break legalityCheck;
             }
-            toSend = "So, " + (user ? d.getPokemon().name : "the target") + " was " + statusName;
+            toSend = "So, " + (user ? d.pokemon.name : "the target") + " was " + statusName;
         }
         e.send(toSend).queue();
     }

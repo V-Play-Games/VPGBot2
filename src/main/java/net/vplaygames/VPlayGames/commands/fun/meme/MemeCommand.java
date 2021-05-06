@@ -48,7 +48,7 @@ public class MemeCommand extends Command {
             e.send("Sorry, but this command cannot be used in DMs.").queue();
             return;
         }
-        Meme meme = conn.getMeme(e.getArgs().size() == 2 ? e.getArg(1) : "");
+        Meme meme = conn.getMeme(e.args.size() == 2 ? e.getArg(1) : "");
         if (meme.nsfw && !((TextChannel) e.getChannel()).isNSFW()) {
             meme = randomMemes.get(new Random().nextInt(randomMemes.size()));
         } else {

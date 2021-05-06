@@ -54,7 +54,7 @@ public class Bot {
     public static long LOG_CHANNEL_ID = 762950187492179995L;
     public static long SYNC_CHANNEL_ID = 762950187492179995L;
     public static final long[] botStaff = new long[4];
-    public static AtomicLong lastMessageProcessedId = new AtomicLong(1);
+    public static AtomicLong lastCommandId = new AtomicLong(1);
     public static Instant instantAtBoot;
     public static String lastRefresh = "never";
     public static final String TOKEN = System.getenv("TOKEN");
@@ -90,14 +90,7 @@ public class Bot {
             .build();
     }
 
-    public static void init() {
-        try {
-            int i = 0;
-            for (Object o : ((org.json.simple.JSONArray) new JSONParser().parse(new BufferedReader(new FileReader("src/main/resources/botStaff.json")))).toArray())
-                botStaff[i++] = Long.parseLong(o.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static void init() throws Exception {
         syncCount = 0;
         setLogChannel(jda.getTextChannelById(LOG_CHANNEL_ID));
         setSyncChannel(jda.getTextChannelById(SYNC_CHANNEL_ID));
@@ -129,7 +122,7 @@ public class Bot {
         new Damage(jda.getSelfUser().getIdLong(), "SAMPLE")
             .setTrainer(TrainerDataCache.getInstance().get("red"))
             .setPokemon(1)
-            .setAttack(3)
+            .setAttack(4)
             .setMod(2, 1)
             .setSml(5)
             .setStats(0, 1, 420)
@@ -145,14 +138,20 @@ public class Bot {
             .incrementAppStatus();
     }
 
-    public static void initData() {
-        try (FileReader reader = (new FileReader("src\\main\\resources\\dataFile.json"))) {
-            System.out.println("Initialising Data");
-            JSONArray.parse((org.json.simple.JSONArray) new JSONParser().parse(reader), Trainer::parse);
-            System.out.println("Data Initialised");
-        } catch (Exception e) {
-            e.printStackTrace();
+    public static void initData() throws Exception {
+        System.out.println("Initialising Data");
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/resources/botStaff.json"))) {
+            int i = 0;
+            for (Object o : (org.json.simple.JSONArray) new JSONParser().parse(reader))
+                botStaff[i++] = Long.parseLong(o.toString());
         }
+        try (BufferedReader reader = new BufferedReader(new FileReader("src\\main\\resources\\dataFile.json"))) {
+            JSONArray.parse((org.json.simple.JSONArray) new JSONParser().parse(reader), Trainer::parse);
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader("src\\main\\resources\\passives.json"))) {
+            JSONArray.parse((org.json.simple.JSONArray) new JSONParser().parse(reader), Passive.Skill::parse);
+        }
+        System.out.println("Data Initialised");
     }
 
     public static void startTimer() {
@@ -189,7 +188,12 @@ public class Bot {
     }
 
     public static void setDefaultActivity() {
-        jda.getPresence().setActivity(Activity.playing("Version " + VERSION + " with " + jda.getGuilds().stream().mapToLong(Guild::getMemberCount).sum() + " people in " + jda.getGuilds().size() + " servers"));
+        jda.getPresence()
+            .setActivity(Activity
+                .playing("Version " + VERSION + " with " + jda.getGuilds()
+                    .stream()
+                    .mapToLong(Guild::getMemberCount)
+                    .sum() + " people in " + jda.getGuilds().size() + " servers"));
     }
 
     public static void setBooted() {

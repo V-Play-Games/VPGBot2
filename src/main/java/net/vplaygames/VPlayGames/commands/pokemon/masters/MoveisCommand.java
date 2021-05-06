@@ -15,9 +15,9 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
 import net.vplaygames.VPlayGames.commands.DamageAppCommand;
+import net.vplaygames.VPlayGames.core.Damage;
 
 import static net.vplaygames.VPlayGames.core.Bot.DATA;
 
@@ -33,11 +33,11 @@ public class MoveisCommand extends DamageAppCommand {
         switch (String.join("", e.getArgsFrom(1))) {
             case "criticalhit":
             case "ch":
-                toSend = "Ok, I'll remember that the move was" + (d.setMod(0, (d.getMod()[0] == 1) ? 0 : 1).getMod()[0] == 0 ? " not" : "") + " critical hit.";
+                toSend = "Ok, I'll remember that the move was" + (d.setMod(0, (d.mod[0] == 1) ? 0 : 1).mod[0] == 0 ? " not" : "") + " critical hit.";
                 break;
             case "supereffective":
             case "se":
-                toSend = "Ok, I'll remember that the move was" + (d.setMod(1, (d.getMod()[1] == 1) ? 0 : 1).getMod()[1] == 0 ? " not" : "") + " super effective.";
+                toSend = "Ok, I'll remember that the move was" + (d.setMod(1, (d.mod[1] == 1) ? 0 : 1).mod[1] == 0 ? " not" : "") + " super effective.";
                 break;
             default:
                 toSend = "Invalid Modifier!";

@@ -15,17 +15,17 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
+import com.vplaygames.PM4J.caches.Cache.Type;
 import com.vplaygames.PM4J.caches.MoveDataCache;
 import com.vplaygames.PM4J.caches.PokemonDataCache;
 import com.vplaygames.PM4J.caches.SkillDataCache;
 import com.vplaygames.PM4J.caches.TrainerDataCache;
-import com.vplaygames.PM4J.caches.Cache.Type;
 import com.vplaygames.PM4J.entities.Pokemon;
 import com.vplaygames.PM4J.entities.Trainer;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.vplaygames.VPlayGames.core.UserEmbedInfo;
 import net.vplaygames.VPlayGames.commands.Command;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.UserEmbedInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;

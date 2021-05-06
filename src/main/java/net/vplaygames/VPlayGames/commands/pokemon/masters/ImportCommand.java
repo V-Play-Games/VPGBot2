@@ -15,9 +15,9 @@
  */
 package net.vplaygames.VPlayGames.commands.pokemon.masters;
 
-import net.vplaygames.VPlayGames.core.Damage;
 import net.vplaygames.VPlayGames.commands.Command;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.Damage;
 
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +36,7 @@ public class ImportCommand extends Command {
         Damage d = DATA.get(e.getAuthor().getIdLong());
         if (code.equals("get"))
             if (d != null)
-                toSend = "Your requested Damage Code is " + d.enable().getCode();
+                toSend = "Your requested Damage Code is " + d.enable().damageCode;
             else
                 toSend = "I cannot find a Damage Calculator App created by you.";
         else {

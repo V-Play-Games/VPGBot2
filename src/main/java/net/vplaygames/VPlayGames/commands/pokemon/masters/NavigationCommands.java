@@ -20,9 +20,9 @@ import com.vplaygames.PM4J.caches.TrainerDataCache;
 import com.vplaygames.PM4J.entities.Pokemon;
 import com.vplaygames.PM4J.entities.Trainer;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.vplaygames.VPlayGames.core.UserEmbedInfo;
 import net.vplaygames.VPlayGames.commands.Command;
 import net.vplaygames.VPlayGames.commands.CommandReceivedEvent;
+import net.vplaygames.VPlayGames.core.UserEmbedInfo;
 
 import java.util.ArrayList;
 

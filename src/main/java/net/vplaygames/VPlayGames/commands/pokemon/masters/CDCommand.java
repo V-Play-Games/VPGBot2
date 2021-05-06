@@ -31,7 +31,7 @@ public class CDCommand extends DamageAppCommand {
     public void onCommandRun(CommandReceivedEvent e) {
         String toSend;
         Damage d = DATA.get(e.getAuthor().getIdLong());
-        switch (d.getAppStatus()) {
+        switch (d.appStatus) {
             case STARTED:
                 toSend = "Choose a Trainer first!";
                 break;
@@ -42,10 +42,10 @@ public class CDCommand extends DamageAppCommand {
                 toSend = "Move is Missing!";
                 break;
             default:
-                if (d.getStats()[0][MiscUtil.isSpecial(d.getAttack().category)] == 0)
-                    toSend = d.getPokemon().name + "'s " + (MiscUtil.isSpecial(d.getAttack().category) == 1 ? "Special" : "Physical") + " Attack stat is Missing!";
-                else if (d.getStats()[1][MiscUtil.isSpecial(d.getAttack().category) + 2] == 0)
-                    toSend = "The target's " + (MiscUtil.isSpecial(d.getAttack().category) == 1 ? "Special" : "Physical") + " Defense stat is Missing!";
+                if (d.stats[0][MiscUtil.isSpecial(d.attack.category)] == 0)
+                    toSend = d.pokemon.name + "'s " + (MiscUtil.isSpecial(d.attack.category) == 1 ? "Special" : "Physical") + " Attack stat is Missing!";
+                else if (d.stats[1][MiscUtil.isSpecial(d.attack.category) + 2] == 0)
+                    toSend = "The target's " + (MiscUtil.isSpecial(d.attack.category) == 1 ? "Special" : "Physical") + " Defense stat is Missing!";
                 else
                     toSend = d.getDamageString();
         }

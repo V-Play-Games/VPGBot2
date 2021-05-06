@@ -33,39 +33,43 @@ public class ViewCommand extends DamageAppCommand {
         switch (list) {
             case "trainer":
             case "t":
-                if (d.getAppStatusAsInt() < 1)
+                if (d.appStatus.ordinal() < 1)
                     toSend = "Choose a Trainer first!";
                 else if (entry.equals("name"))
-                    toSend = "The chosen trainer is named " + d.getTrainer().name;
+                    toSend = "The chosen trainer is named " + d.trainer.name;
                 else
                     toSend = "Cannot find entry \"" + entry + "\" in list \"" + list + "\"";
                 break;
             case "move":
             case "m":
-                if (d.getAppStatusAsInt() < 3) {
+                if (d.appStatus.ordinal() < 3) {
                     toSend = "Choose a Move first!";
                     break;
                 }
                 switch (entry) {
                     case "name":
                     case "n":
-                        toSend = "The current chosen move is named " + d.getAttack().name;
+                        toSend = "The current chosen move is named " + d.attack.name;
                         break;
                     case "info":
                     case "i":
                         toSend = "Move Info:-" +
-                            "\nBase Power: " + d.getAttack().base +
-                            "\nCategory: " + d.getAttack().category +
-                            "\nTarget: " + d.getAttack().target +
-                            "\nType: " + d.getAttack().type;
+                            "\nBase Power: " + d.attack.minPower +
+                            "\nCategory: " + d.attack.category +
+                            "\nTarget: " + d.attack.target +
+                            "\nType: " + d.attack.type;
                         break;
                     case "level":
                     case "lvl":
-                        toSend = "Sync Move Level: " + d.getSml();
+                        toSend = "Sync Move Level: " + d.sml;
                         break;
                     case "modifier":
                     case "mod":
-                        toSend = "Available Modifiers:" + (d.getMod()[0] + d.getMod()[1] == 0 ? "\nNone" : (d.getMod()[0] == 1 ? "\nCritical Hit" : "") + (d.getMod()[1] == 1 ? "\nSuper-Effective" : ""));
+                        toSend = "Available Modifiers:"
+                            + (d.mod[0] + d.mod[1] == 0
+                            ? "\nNone" :
+                            (d.mod[0] == 1 ? "\nCritical Hit" : "")
+                                + (d.mod[1] == 1 ? "\nSuper-Effective" : ""));
                         break;
                     default:
                         toSend = "Cannot find entry \"" + entry + "\" in list \"" + list + "\"";
@@ -74,7 +78,7 @@ public class ViewCommand extends DamageAppCommand {
             case "weather":
             case "w":
                 // First letter Capital
-                toSend = d.getWeather().toString().substring(0, 1).toUpperCase() + d.getWeather().toString().substring(1).toUpperCase() + ".";
+                toSend = d.weather.toString().substring(0, 1).toUpperCase() + d.weather.toString().substring(1).toUpperCase() + ".";
                 break;
             default:
                 toSend = "Cannot find list \"" + list + "\"";

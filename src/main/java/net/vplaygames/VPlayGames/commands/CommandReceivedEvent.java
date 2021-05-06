@@ -32,14 +32,14 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CommandReceivedEvent extends MessageReceivedEvent {
-    boolean forceNotLog;
-    long id, time;
-    String content;
-    String output;
-    List<String> args;
-    ICommand command;
-    JSONObject logRepresentation;
-    Throwable trouble;
+    public boolean forceNotLog;
+    public long id, time;
+    public String content;
+    public String output = "";
+    public List<String> args;
+    public ICommand command;
+    public JSONObject logRepresentation = new JSONObject();
+    public Throwable trouble;
 
     public CommandReceivedEvent(GuildMessageReceivedEvent e, String[] args, ICommand command) {
         this(e.getJDA(), e.getResponseNumber(), e.getMessage(), args, command);
@@ -50,24 +50,10 @@ public class CommandReceivedEvent extends MessageReceivedEvent {
         this.content = message.getContentRaw();
         this.args = Arrays.asList(args);
         this.command = command;
-        this.id = Bot.lastMessageProcessedId.getAndIncrement();
+        this.id = Bot.lastCommandId.getAndIncrement();
         this.time = System.currentTimeMillis();
-        this.output = "";
-        this.logRepresentation = new JSONObject();
         Bot.responses.put(id, logRepresentation);
         command.run(this);
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public long getTime() {
-        return time;
-    }
-
-    public List<String> getArgs() {
-        return args;
     }
 
     public List<String> getArgsFrom(int index) {
@@ -76,22 +62,6 @@ public class CommandReceivedEvent extends MessageReceivedEvent {
 
     public String getArg(int index) {
         return args.get(index);
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public String getOutput() {
-        return output;
-    }
-
-    public ICommand getCommand() {
-        return command;
-    }
-
-    public JSONObject getLogRepresentation() {
-        return logRepresentation;
     }
 
     public void responded(String response) {
